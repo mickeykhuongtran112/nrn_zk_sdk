@@ -1,0 +1,54 @@
+{
+  "evidence": "vendor-dll-loopback (historical), not RF capture",
+  "source": "../nation-zk-python/tests/test_api.py::test_vendor_golden_frames and docs/PROTOCOL.md; supplied Ex10 V6.8 UHFReader288.dll on loopback; imported 2026-10-09",
+  "vectors": [
+    {
+      "address": 255,
+      "command": 33,
+      "data": "",
+      "frame": "04ff211995"
+    },
+    {
+      "address": 0,
+      "command": 1,
+      "data": "0400008003",
+      "frame": "0900010400008003e347"
+    },
+    {
+      "address": 0,
+      "command": 1,
+      "data": "040002000010e280008003",
+      "frame": "0f0001040002000010e2800080036c65"
+    },
+    {
+      "address": 0,
+      "command": 47,
+      "data": "96",
+      "frame": "05002f96323c"
+    },
+    {
+      "address": 0,
+      "command": 63,
+      "data": "82",
+      "frame": "05003f8206ff"
+    },
+    {
+      "address": 0,
+      "command": 2,
+      "data": "06e2000000000000000000000102000600000000",
+      "frame": "18000206e20000000000000000000001020006000000003a3e"
+    },
+    {
+      "address": 0,
+      "command": 3,
+      "data": "01ff030012340000000002002010e280",
+      "frame": "14000301ff030012340000000002002010e280faf6"
+    },
+    {
+      "address": 0,
+      "command": 148,
+      "data": "",
+      "frame": "040094ff88"
+    }
+  ]
+}

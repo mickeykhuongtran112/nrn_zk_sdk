@@ -1,0 +1,13 @@
+"""Injected nonblocking byte transport. Empty read means EOF, not polling timeout."""
+
+from typing import Protocol, runtime_checkable
+
+
+@runtime_checkable
+class AsyncTransport(Protocol):
+    async def open(self) -> None: ...
+    async def close(self) -> None: ...
+    async def read(self, size: int = 4096) -> bytes: ...
+    async def write(self, data: bytes) -> int:
+        """Return accepted count; short writes are supported, zero is an error."""
+        ...
