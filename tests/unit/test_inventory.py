@@ -1,13 +1,19 @@
 from dataclasses import replace
+
 import pytest
-from zk_rfid import InventoryConfig, InventoryData, ProtocolError, TagMask, UnverifiedFeature
-from zk_rfid.commands.inventory import (
+
+from zk_rfid import (
+    InventoryConfig,
+    InventoryData,
     MixDecoder,
+    ProtocolError,
+    TagMask,
+    UnverifiedFeature,
     build_inventory,
     decode_answer,
     decode_heartbeat,
-    decode_stream,
     decode_statistics,
+    decode_stream,
     inventory_epc,
 )
 
@@ -79,7 +85,7 @@ def test_absent_phase_stays_absent():
 
 
 def test_realtime_and_buffer_use_same_user_rssi_mapping():
-    from zk_rfid.commands.buffer import decode_buffer
+    from zk_rfid import decode_buffer
 
     realtime = decode_stream(bytes.fromhex("0102ABCD3C"), ports=1, scenario=False)
     buffered = decode_buffer(bytes.fromhex("010102ABCD5503"), ports=1)[0]

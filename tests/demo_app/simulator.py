@@ -1,8 +1,8 @@
 """Synthetic byte transport for GUI inspection; never a hardware validation source."""
 
 import asyncio
-from zk_rfid.protocol import crc16
-from zk_rfid.protocol.crc import append_crc
+
+from zk_rfid import append_crc, crc16
 
 
 def response(command, data=b"", status=0, address=0):

@@ -1,8 +1,9 @@
 import asyncio
+
 import pytest
-from zk_rfid import RequestTimeout, StateError, TransportError
-from zk_rfid.dispatcher import Dispatcher
+
 from tests.conftest import FakeTransport, response
+from zk_rfid import Dispatcher, RequestTimeout, StateError, TransportError
 
 pytestmark = pytest.mark.asyncio
 

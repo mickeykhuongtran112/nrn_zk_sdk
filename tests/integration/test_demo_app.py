@@ -1,19 +1,20 @@
 import asyncio
 import csv
-import io
 import inspect
+import io
 import json
 import threading
-import urllib.request
 import urllib.error
+import urllib.request
+
 import pytest
-from zk_rfid import ZKReader, InventoryConfig, InventoryData, TagMask
-from zk_rfid.errors import ValidationError
-from tests.demo_app.catalog import catalogue, OP_GROUP, convert
+
+from tests.demo_app.catalog import OP_GROUP, catalogue, convert
 from tests.demo_app.controller import Controller
 from tests.demo_app.records import EventLog, tags_csv
-from tests.demo_app.server import Runtime, DemoServer
+from tests.demo_app.server import DemoServer, Runtime
 from tests.demo_app.simulator import DemoTransport
+from zk_rfid import InventoryConfig, InventoryData, TagMask, ValidationError, ZKReader
 
 
 async def run(c, name, args=None, intent=None):

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def collect():
     records = []
-    for path in sorted((ROOT / "src/zk_rfid").rglob("*.py")):
+    for path in [ROOT / "src/zk_rfid.py"]:
         tree = ast.parse(path.read_text(encoding="utf-8"))
         relative = path.relative_to(ROOT).as_posix()
 
@@ -28,7 +28,7 @@ def collect():
             )
             record["status"] = (
                 "unsupported by design"
-                if relative.endswith("tag_features.py")
+                if name in ("VENDOR_TAG_COMMANDS", "require_vendor_feature")
                 or name in ("NationAdapter.get_beeper", "NationAdapter.set_filter_settings")
                 else "unverified mapping; rejected explicitly"
                 if name == "NationAdapter.set_rf_band"
@@ -102,7 +102,7 @@ def render(records):
     lines += [
         "```",
         "",
-        "## Symbols theo tree package",
+        "## Symbols trong file SDK duy nhất",
         "",
         "Bao gồm class, method, function và constant; mục vendor-tag được đánh dấu ngoài scope.",
         "",

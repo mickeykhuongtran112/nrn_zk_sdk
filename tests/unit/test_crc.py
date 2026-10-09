@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
+
 import pytest
-from zk_rfid.protocol import crc16, encode_command
+
+from zk_rfid import crc16, encode_command
 
 VECTORS = [
     (255, 0x21, "", "04ff211995"),

@@ -4,9 +4,10 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
-from zk_rfid import ZKReader, InventoryConfig, ReaderCapabilities
-from zk_rfid.transports.serial import SerialTransport
+
 from _common import CaptureTransport, emit, json_default
+
+from zk_rfid import InventoryConfig, ReaderCapabilities, SerialTransport, ZKReader
 
 
 async def run(args):

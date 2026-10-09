@@ -1,7 +1,16 @@
 import pytest
-from zk_rfid import TagReport, UnverifiedFeature, ValidationError, InventoryConfig
-from zk_rfid.commands.inventory import decode_answer
-from zk_rfid.compat.nation.mapping import RFMapping, hex_epc, power_dict, tag_dict
+
+from zk_rfid import (
+    InventoryConfig,
+    RFMapping,
+    TagReport,
+    UnverifiedFeature,
+    ValidationError,
+    decode_answer,
+    hex_epc,
+    power_dict,
+    tag_dict,
+)
 
 
 def test_measurements_not_fabricated():

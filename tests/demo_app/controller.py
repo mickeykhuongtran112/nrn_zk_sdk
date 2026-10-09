@@ -5,13 +5,24 @@ import inspect
 import math
 import time
 from collections import OrderedDict
-from zk_rfid import ZKReader, ReaderCapabilities, InventoryOutcome, TagReport, WorkingMode
-from zk_rfid.errors import StateError, ValidationError, OperationError, ExchangeError
-from zk_rfid.protocol.status import interpret_status
-from zk_rfid.transports.serial import SerialTransport
-from .catalog import convert, plain, OP_GROUP, TAG_WRITES, DESTRUCTIVE
-from .simulator import DemoTransport
+
+from zk_rfid import (
+    ExchangeError,
+    InventoryOutcome,
+    OperationError,
+    ReaderCapabilities,
+    SerialTransport,
+    StateError,
+    TagReport,
+    ValidationError,
+    WorkingMode,
+    ZKReader,
+    interpret_status,
+)
+
+from .catalog import DESTRUCTIVE, OP_GROUP, TAG_WRITES, convert, plain
 from .live import LiveView
+from .simulator import DemoTransport
 
 
 class Controller:

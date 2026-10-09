@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zk-rfid-sdk"
-version = "0.1.0.dev1"
+version = "0.2.0.dev1"
 description = "Native async Python SDK for ZK Gen2 UHF RFID readers"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,10 +19,9 @@ classifiers = [
 serial = ["pyserial>=3.5"]
 dev = ["build>=1", "pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.6"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["zk_rfid*"]
-namespaces = false
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["zk_rfid"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -38,6 +37,3 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
-
-[tool.setuptools.package-data]
-zk_rfid = ["py.typed"]

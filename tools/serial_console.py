@@ -2,9 +2,10 @@
 
 import argparse
 import asyncio
-from zk_rfid.dispatcher import Dispatcher
-from zk_rfid.transports.serial import SerialTransport
+
 from _common import emit
+
+from zk_rfid import Dispatcher, SerialTransport
 
 
 async def run(args):

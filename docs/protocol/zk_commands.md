@@ -50,7 +50,7 @@ Tất cả dòng dưới đây có native builder/decoder và public API hoặc 
 | 29 | get/set_config | Raw getter; setter5byte khi caller xác nhận dialect |
 | 31 | get/set_custom_profiles | Ba profile IDBE16 |
 
-Native profile catalogue gồm54record có Tari/BLF/encoding theo manual, ở src/zk_rfid/profiles.py. Danh mục không chứng minh mọi firmware hỗ trợ tất cả profile.
+Native profile catalogue gồm54record có Tari/BLF/encoding theo manual, ở phần `Native RF profile catalogue` của [src/zk_rfid.py](../../src/zk_rfid.py). Danh mục không chứng minh mọi firmware hỗ trợ tất cả profile.
 
 ## Side effect và persistence
 

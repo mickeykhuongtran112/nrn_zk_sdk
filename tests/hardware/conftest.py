@@ -1,10 +1,11 @@
 """Hardware is opened only after explicit -m hardware AND environment selection."""
 
 import os
+
 import pytest
 import pytest_asyncio
-from zk_rfid import ZKReader, ReaderCapabilities, TagTarget, TagMask, MemoryBank
-from zk_rfid.transports.serial import SerialTransport
+
+from zk_rfid import MemoryBank, ReaderCapabilities, SerialTransport, TagMask, TagTarget, ZKReader
 
 
 @pytest_asyncio.fixture
