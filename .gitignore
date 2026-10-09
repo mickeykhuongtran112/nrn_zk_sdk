@@ -1,0 +1,51 @@
+# Private working material (entire directory)
+/local_data/
+
+# Existing private folders retained in place during the initial scaffold
+/Protocol_ZK/
+/Protocol_NATION/
+/Mode_research/
+
+# Local environments and secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Python bytecode and tooling caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Python packaging
+/build/
+/dist/
+*.egg-info/
+.eggs/
+
+# Generated working output
+/tmp/
+/artifacts/
+
+# Local editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+
+# Intentionally do NOT ignore all *.txt, *.json, *.hex, *.bin, or *.log.
+# Reviewed fixtures of these types must remain trackable.

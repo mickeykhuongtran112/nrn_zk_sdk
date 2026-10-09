@@ -1,0 +1,6 @@
+# Stable text checkouts on Windows and Linux.
+* text=auto eol=lf
+
+# Preserve the pinned third-party reference byte for byte.
+/compat/nation/nrn.py -text
+/compat/nation/LICENSE -text

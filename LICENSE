@@ -1,0 +1,9 @@
+PROJECT LICENSE STATUS
+
+A distribution license for original project code has not been selected yet.
+This placeholder is not a license grant. Resolve the project license before
+publishing or redistributing the SDK.
+
+The NATION reference driver is third-party code and retains its own MIT license
+in compat/nation/LICENSE. That license does not automatically apply to original
+ZK project code.

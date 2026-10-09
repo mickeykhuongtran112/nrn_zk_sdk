@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "status": "software contracts tested; hardware/RF equivalence unverified",
+  "cases": [
+    {
+      "id": "power-ports",
+      "operation": "power_dictionary",
+      "equivalence": "converted",
+      "input": [
+        10,
+        20,
+        30,
+        0
+      ],
+      "expected": {
+        "1": 10,
+        "2": 20,
+        "3": 30,
+        "4": 0
+      },
+      "evidence": "Native per-port integer dBm to 1-based application dictionary; range constrained to 0..30; no RF calibration claim",
+      "model": null,
+      "firmware": null,
+      "fixture": null,
+      "tolerance": "exact software value"
+    },
+    {
+      "id": "epc-leading-zero",
+      "operation": "epc_hex",
+      "equivalence": "converted",
+      "input": "0000aBcD",
+      "expected": "0000ABCD",
+      "evidence": "Lossless application hex conversion",
+      "model": null,
+      "firmware": null,
+      "fixture": null,
+      "tolerance": "exact software value"
+    },
+    {
+      "id": "zk-power-volatile",
+      "operation": "zk_command",
+      "equivalence": "converted",
+      "input": {
+        "address": 0,
+        "command": 47,
+        "data": "96"
+      },
+      "expected": "05002F96323C",
+      "evidence": "Historical vendor DLL loopback TX; compared only against ZK expected TX",
+      "model": null,
+      "firmware": null,
+      "fixture": "fixtures/zk/documented/frames.json",
+      "tolerance": "exact software value"
+    },
+    {
+      "id": "profile-ids",
+      "operation": "rf_profile",
+      "equivalence": "unverified",
+      "input": {
+        "nation": 1,
+        "zk": 146
+      },
+      "expected": null,
+      "evidence": "Needs physical parameter/RF measurement for exact model/firmware; no automatic mapping",
+      "model": null,
+      "firmware": null,
+      "fixture": null,
+      "tolerance": null
+    },
+    {
+      "id": "rssi-units",
+      "operation": "rssi_dbm",
+      "equivalence": "unverified",
+      "input": 85,
+      "expected": null,
+      "evidence": "ZK V2.25 provides raw byte, no calibrated dBm transform",
+      "model": null,
+      "firmware": null,
+      "fixture": null,
+      "tolerance": null
+    }
+  ]
+}
