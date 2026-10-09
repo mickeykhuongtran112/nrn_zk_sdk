@@ -1,5 +1,16 @@
 # Public API
 
+Implementation duy nhất: [src/zk_rfid.py](../src/zk_rfid.py). Có thể copy file vào ứng dụng hoặc cài wheel; cả hai dùng cùng API:
+
+```python
+from zk_rfid import ZKReader, SerialTransport, InventoryConfig, ReaderCapabilities
+from zk_rfid import TagReport, CommandResult, OperationError, NationAdapter
+```
+
+Bản `0.2.0.dev1` gộp các module cũ vào một file nguồn, không dùng loader hay package nhúng. Đổi `from zk_rfid.<module> import X` thành `from zk_rfid import X`; `ZKReader` giữ tên method, tham số và kết quả. Cấu trúc module Python đã đổi nên pickle chứa đường dẫn class của bản cũ không tương thích; dùng dữ liệu JSON/CSV của ứng dụng để lưu/chuyển kết quả.
+
+`SerialTransport` chỉ import `pyserial` khi `open()`; core không cần dependency ngoài. Các hàm command cấp module (`get_power()`, `read_memory()`, ...) chỉ tạo `Request` để kiểm tra/encode. Thực thi I/O qua `await reader.get_power()`, `await reader.read_memory(...)`, v.v.
+
 Entry point: `ZKReader(transport, address=0, capabilities=ReaderCapabilities(...), timeout=3.0)`.
 [Catalogue đầy đủ](functions_implemented.md) chứa function/property, chữ ký và dòng nguồn; [JSON](api_symbols.json) dùng cho công cụ.
 

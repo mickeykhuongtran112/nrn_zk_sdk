@@ -1,10 +1,10 @@
 # Kế hoạch phát triển ZK RFID SDK và đối chiếu NATION
 
 - Cập nhật: 2026-10-09.
-- Workspace: `zk-rfid-sdk`; distribution: `zk-rfid-sdk`; package: `zk_rfid`.
+- Workspace: `zk-rfid-sdk`; distribution: `zk-rfid-sdk`; module một file: `zk_rfid`.
 - Vai trò: firmware engineer tự phát triển driver protocol Python, debug trước khi bàn giao.
-- Trạng thái đợt này: native SDK 0.1.0.dev1 đã triển khai và kiểm thử phần mềm CPython/Pyodide; hardware/power-cycle/RF benchmark và license phát hành chưa hoàn tất.
-- Không thực hiện git add/commit. Không đổi tên workspace hoặc di chuyển dữ liệu riêng hiện có.
+- Trạng thái đợt này: native SDK 0.2.0.dev1 (một file nguồn) đã triển khai và kiểm thử phần mềm CPython/Pyodide; hardware/power-cycle/RF benchmark và license phát hành chưa hoàn tất.
+- Bản đầu đã commit/push theo yêu cầu chủ dự án. Đợt gộp một file là bản 0.2.0.dev1; không đổi tên workspace hoặc di chuyển dữ liệu riêng.
 
 ## 1. Mục tiêu và ranh giới
 
@@ -12,11 +12,11 @@ Xây SDK native ZK-7180M/ZK-7182M ở cùng cấp độ host protocol với Next
 
 Chỉ hỗ trợ RAIN UHF Gen2/ISO18000-6C và các chức năng reader liên quan. Bỏ ISO18000-6B và các chuẩn ngoài phạm vi. Tính năng riêng của chip tag chỉ triển khai khi có nhu cầu và bằng chứng; tên E710 không chứng minh firmware có mọi chức năng Gen2v2/Ex10.
 
-Core Python async hướng tới CPython và Pyodide. Transport được inject; pyserial là dependency tùy chọn của CPython. Phạm vi ban đầu loại GUI/web. Theo yêu cầu bổ sung ngày 2026-10-09, thêm HTML test console trong tests/demo_app, loopback HTTP/serial do CPython quản lý; core/wheel vẫn không phụ thuộc web/threads. Không triển khai extension, dịch vụ mạng dùng chung hoặc COM ảo.
+Core Python async hướng tới CPython và Pyodide. Transport được inject; pyserial là dependency tùy chọn của CPython. Phạm vi ban đầu loại GUI/web. Theo yêu cầu bổ sung ngày 2026-10-09, thêm HTML test console trong tests/demo_app, loopback HTTP/serial do CPython quản lý; core async không phụ thuộc web; SerialTransport tùy chọn dùng asyncio.to_thread cho pyserial. Không triển khai extension, dịch vụ mạng dùng chung hoặc COM ảo.
 
 NATION có hai vai trò riêng:
 - `compat/nation/`: driver nguyên trạng, provenance/license và ca đối chiếu ngoài package.
-- `src/zk_rfid/compat/nation/`: adapter API runtime trên ZK, chỉ hỗ trợ contract/mapping đã chốt.
+- `NationAdapter` trong `src/zk_rfid.py`: adapter API runtime trên ZK, chỉ hỗ trợ contract/mapping đã chốt.
 
 Không triển khai bộ giả lập NATION wire protocol. Adapter không import nrn.py hoặc phụ thuộc parser/transport NATION. SDK ZK được nghiệm thu độc lập với mapping NATION.
 
@@ -29,11 +29,13 @@ Không triển khai bộ giả lập NATION wire protocol. Adapter không import
 - Unit/integration/compat/runtime đã chạy. Pyodide dùng cùng source,8golden vectors và2000fragmented RXframes, không rò task trong harness.
 - Danh mục thực tế tự sinh: [functions_implemented.md](docs/functions_implemented.md), [api_symbols.json](docs/api_symbols.json).
 - [Validation](docs/validation.md) lưu môi trường/kết quả; [supported matrix](docs/supported_devices.md) phân biệt implemented và unverified.
-- nrn.py/reference LICENSE giữ nguyên. LICENSE mã ZK chưa chọn; không publish hoặc commit.
+- nrn.py/reference LICENSE giữ nguyên. LICENSE mã ZK chưa chọn; chưa phát hành package lên PyPI.
 - Đợt GUI có 72 thao tác trong menu + Connect/Disconnect, structured TX/RX trace, CSV/JSONL và simulator. Xem [GUI](tests/demo_app/README.md), [đối chiếu NATION/C#](docs/demo_and_parity.md).
-- Agent không mở COM hoặc ghi tag thật. Người dùng đã báo 3 hardware tests PASS qua ảnh trên COM13/115200; chưa nghiệm thu đầy đủ. Dữ liệu riêng giữ tại chỗ, bị ignore và loại khỏi package.
+- Người dùng báo 3 hardware tests PASS; agent đã kiểm tra một phiên Scenario/phase trên COM13/115200/1-port ở bản trước, xem docs/hardware_live_view_check.md. Đợt gộp file chỉ kiểm thử phần mềm, không gửi lệnh phần cứng. Dữ liệu riêng bị ignore và loại khỏi package.
 
 ## 3. Tree project và trách nhiệm
+
+Theo yêu cầu tích hợp/review, từ 0.2.0.dev1 toàn bộ implementation nằm trong `src/zk_rfid.py`; không duy trì các module nguồn con hoặc bản generated song song. Import trực tiếp `from zk_rfid import ...`; tests/demo/examples dùng đúng file này.
 
 README trong các thư mục fixture/runtime giữ thư mục trong Git và mô tả dữ liệu cần có. local_data được ignore nên chỉ tồn tại cục bộ.
 
@@ -45,48 +47,9 @@ zk-rfid-sdk/  # Native SDK implementation
 ├── CHANGELOG.md                                      # Lịch sử thay đổi SDK và cấu trúc project
 ├── .gitignore                                        # Bỏ qua dữ liệu riêng, môi trường Python, cache và build
 ├── plan_agent.md                                     # Kế hoạch triển khai và tiêu chí nghiệm thu
-├── src/                                              # Mã nguồn được đóng gói
-│   └── zk_rfid/                                      # Package SDK ZK độc lập
-│       ├── __init__.py                               # Version và public API exports
-│       ├── reader.py                                 # API public và validation trước khi gọi các thao tác
-│       ├── dispatcher.py                             # Một luồng RX, pending request, routing response/report và deadline
-│       ├── inventory_session.py                      # Vòng đời Answer/Scenario và adapter luồng Real-time theo capability
-│       ├── models.py                                 # MemoryBank, TagTarget, cấu hình, kết quả lệnh và TagReport
-│       ├── events.py                                 # Structured trace: request/TX/RX/frame/result/state
-│       ├── errors.py                                 # Phân loại lỗi và bảo toàn mã lỗi native
-│       ├── capabilities.py                           # Khả năng/giới hạn reader theo model và firmware đã xác minh
-│       ├── profiles.py                               # Danh mục RF profile native và thông số vật lý
-│       ├── protocol/                                 # Giao thức frame host-module ZK
-│       │   ├── __init__.py                           # Khai báo package protocol
-│       │   ├── constants.py                          # Opcode và bit flag theo ngữ cảnh Gen2/Ex10
-│       │   ├── crc.py                                # CRC của frame UART ZK
-│       │   ├── frame.py                              # Đóng/tách Len, Adr, Cmd, Status, Data và CRC
-│       │   ├── parser.py                             # Ghép chunk, xác thực frame và phục hồi stream
-│       │   └── status.py                             # Diễn giải status theo command và trạng thái thực thi
-│       ├── commands/                                 # Builder/decoder thuần, không trực tiếp thực hiện I/O
-│       │   ├── __init__.py                           # Khai báo package commands
-│       │   ├── reader_info.py                        # Model, firmware, serial và thông tin reader
-│       │   ├── reader_config.py                      # Baud, địa chỉ, interface và working mode
-│       │   ├── inventory.py                          # EPC/TID/FastID/Mix, fast start/stop và tag reports
-│       │   ├── tag_access.py                         # Read/write thường và mở rộng, EPC/password, select/lock/kill/block
-│       │   ├── tag_features.py                       # Tính năng Gen2 riêng của chip tag có nhu cầu và bằng chứng
-│       │   ├── power.py                              # Công suất đọc/ghi và công suất từng anten
-│       │   ├── antenna.py                            # Chọn anten, multiplexing và antenna check
-│       │   ├── rf_config.py                          # Region, frequency, hopping, DRM và lệnh RF profile
-│       │   ├── extended.py                           # CFG Ex10: scan, Q/session, TagFocus, TID, mask, custom profile
-│       │   ├── buffer.py                             # Inventory vào buffer reader, đọc/đếm/xóa buffer
-│       │   ├── io_control.py                         # GPIO, LED và buzzer theo phần cứng
-│       │   └── diagnostics.py                        # Nhiệt độ reader và đo return loss
-│       ├── transports/                               # Truyền nhận byte độc lập với protocol
-│       │   ├── __init__.py                           # Package transport; không eager-import pyserial
-│       │   ├── base.py                               # Contract async byte I/O được inject vào reader
-│       │   └── serial.py                             # Transport CPython dùng pyserial; chưa triển khai
-│       └── compat/                                   # Adapter runtime được đóng gói cùng ZK
-│           ├── __init__.py                           # Khai báo package tương thích
-│           └── nation/                               # Contract NATION thực thi bằng SDK ZK
-│               ├── __init__.py                       # Public exports của adapter khi đã triển khai
-│               ├── adapter.py                        # Chuyển lời gọi/kết quả NATION sang API native ZK
-│               └── mapping.py                        # Quy tắc tham số, RF, payload đã giải mã và lỗi NATION-ZK
+├── src/
+│   └── zk_rfid.py                                   # Toàn bộ SDK: API, types/errors, protocol, command,
+│                                                    # transport, dispatcher, inventory và NationAdapter
 ├── compat/                                           # Tài liệu và mã tham chiếu ngoài package phát hành
 │   └── nation/                                       # Baseline NATION để đối chiếu và sửa lỗi riêng
 │       ├── README.md                                 # Cách quản lý và dùng bản tham chiếu
@@ -382,7 +345,7 @@ Các tiêu chí phần mềm đã kiểm chứng được đánh dấu; phần h
 - Demo Ex10 Module SDK V6.8: đã review Answer/Scenario, CFG10 và fast reports; không đưa DLL/demo hãng vào core.
 - NATION baseline: https://github.com/Nextwaves-Industries/nextwaves-sdk/tree/d416b0d3bd5a103cf6b1833b13f0c88e9dfbe24b/sdk/nation/python
 - Scaffold từng tham chiếu Protocol_ZK/EPC_Phase_HOST_SEND.txt, EPC_Phase_READER_RESPONSE.txt và Mode_research/Profile.png. Chưa tìm thấy tại các đường dẫn workspace hiện tại; không dùng các file này làm bằng chứng trong đợt triển khai.
-- Chưa có thiết bị/firmware/chip tag được hardware verified trong project. Không dùng tên file, screenshot hoặc model chip để tự xác nhận capability.
+- Chứng cứ phần cứng hiện có giới hạn ở các ca ghi nhận trong docs/hardware_live_view_check.md và 3 tests do người dùng báo; chưa nghiệm thu toàn bộ model/firmware/chip tag.
 
 ## 10. Hạng mục còn lại trước nghiệm thu thiết bị/phát hành
 1. Chọn module/firmware/antenna ports và chip tag thực, capture TX/RX có provenance; không lấy tên chip làm capability.

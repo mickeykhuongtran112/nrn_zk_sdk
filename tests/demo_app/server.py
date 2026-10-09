@@ -8,11 +8,11 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit, parse_qs
-from zk_rfid import SDK_VERSION
-from zk_rfid.errors import ValidationError, StateError
-from zk_rfid.profiles import PROFILES
-from .catalog import catalogue, LIMITATIONS, plain
+from urllib.parse import parse_qs, urlsplit
+
+from zk_rfid import PROFILES, SDK_VERSION, StateError, ValidationError
+
+from .catalog import LIMITATIONS, catalogue, plain
 from .controller import Controller
 from .records import tags_csv
 

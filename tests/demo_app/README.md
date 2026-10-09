@@ -2,6 +2,8 @@
 
 Ứng dụng HTML chạy cục bộ, nằm trong `tests/demo_app`. Python sở hữu COM và gọi SDK; trình duyệt chỉ gửi yêu cầu tới `127.0.0.1`. Không cần Node, npm, WebSerial, DLL hãng hoặc framework web.
 
+Demo import cùng file nguồn [src/zk_rfid.py](../../src/zk_rfid.py) dùng khi tích hợp; không có bản SDK riêng cho GUI. Sau khi nâng lên bản một file `0.2.0.dev1`, cài lại editable install và restart Python server theo lệnh dưới đây. Reload trình duyệt không thay thế restart server Python.
+
 Giao diện **Graphite Light** dùng tông xám nhẹ, tham khảo Minimalism & Swiss Style của UI/UX Pro Max. Xem [theme, tokens và kết quả kiểm tra UI](DESIGN.md). Khi đã mở app trước lúc đổi theme, reload trang để tải CSS/JS mới.
 
 ## Chạy trên máy đang nối COM13

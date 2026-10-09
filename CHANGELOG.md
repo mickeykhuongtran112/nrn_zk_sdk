@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0.dev1 — 2026-10-09
+- Gộp implementation thành một file nguồn `src/zk_rfid.py`: native API, types/errors, CRC/parser/status, command builders/decoders, async/serial transport, dispatcher, inventory và NationAdapter. Không cần generator hoặc package SDK phụ khi copy tích hợp.
+- Giữ 74 method + 3 property của ZKReader, command bytes, response/error/confirmation, single RX, trace, RSSI và phase. Cập nhật demo, tools, examples, catalog và Pyodide dùng cùng file.
+- Đổi import module con sang `from zk_rfid import ...`; thêm SerialTransport và NationAdapter vào public exports. Đường dẫn module cũ/pickle chứa class path cũ không còn tương thích. API vẫn async/await.
+- Cấu hình wheel thành `py-modules`, thêm kiểm thử copy file độc lập bằng Python `-I -S` và chạy runtime harness không có site-packages/pyserial. Không thực hiện kiểm thử phần cứng mới trong đợt gộp file.
+
 ## 0.1.0.dev1 — 2026-10-09
 - Sửa bảng tag trống khi UI mới gọi `/api/live` trên Python server cũ: fallback snapshot, báo HTTP/version/restart, tự phục hồi live và chặn snapshot đến muộn. Server giữ static assets cùng phiên; thêm regression client/HTTP.
 - Thêm RSSI mapping theo yêu cầu người dùng: raw60→−75dBm, raw110→−25dBm (`raw - 135`), áp dụng cho inventory/stream/buffer; giữ raw/source/in-range, xuất qua adapter/CSV/log và cột dBm trên GUI. Ngoài dải dùng ngoại suy, không clamp.

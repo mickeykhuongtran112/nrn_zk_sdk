@@ -3,22 +3,23 @@
 import inspect
 from dataclasses import fields
 from enum import Enum
+
 from zk_rfid import (
-    ZKReader,
     InventoryConfig,
     InventoryData,
     InventoryMode,
     MemoryBank,
+    QueryParameters,
+    RealTimeConfig,
+    Region,
+    ScanParameters,
     TagMask,
     TagTarget,
-    Region,
-    QueryParameters,
     TIDParameters,
-    ScanParameters,
-    RealTimeConfig,
+    ValidationError,
     WorkingMode,
+    ZKReader,
 )
-from zk_rfid.errors import ValidationError
 
 GROUPS = {
     "Reader": "get_reader_info get_serial_number get_capabilities set_address set_baudrate set_inventory_time set_interface",

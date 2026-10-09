@@ -2,6 +2,8 @@
 
 SDK Python native async cho ZK-7180M/ZK-7182M thuộc họ Ex10, phạm vi RAIN UHF Gen2/ISO18000-6C. Core tự tạo và giải mã protocol ZK, không phụ thuộc DLL hãng hoặc driver NATION.
 
+**Toàn bộ implementation nằm trong [src/zk_rfid.py](src/zk_rfid.py).** Đây là file nguồn duy nhất để sửa, review và tích hợp: gồm models/errors, CRC/frame/parser, command builders/decoders, transport, dispatcher, inventory, `ZKReader` và `NationAdapter`. Các phần có tiêu đề để tìm nhanh trong editor; không cần bước sinh hoặc ghép file.
+
 **Đã triển khai SDK và GUI kiểm thử; chưa nghiệm thu toàn bộ phần cứng.** Ngoài 3 hardware tests PASS do người dùng cung cấp, đã kiểm tra Scenario có phase trên COM13/115200/1-port: 7.594 reports, Stop thành công, hiển thị RSSI dBm và phase. Xem [biên bản kiểm tra trên module thật](docs/hardware_live_view_check.md).
 
 - [Danh mục function/class/constant và chữ ký API](docs/functions_implemented.md): sinh từ mã nguồn, theo dạng Symbols yêu cầu.
@@ -11,7 +13,25 @@ SDK Python native async cho ZK-7180M/ZK-7182M thuộc họ Ex10, phạm vi RAIN 
 - [Kiểm thử](docs/validation.md), [nguồn và errata](docs/protocol/errata.md).
 - [Adapter NATION](docs/nation_comparison.md), [kế hoạch](plan_agent.md).
 
-## Cài đặt
+## Tích hợp bằng một file
+
+Python >=3.11. Sao chép **chỉ `src/zk_rfid.py`** vào cùng thư mục với chương trình của bạn:
+
+```text
+your_app/
+├── app.py
+└── zk_rfid.py
+```
+
+Nếu dùng COM trên CPython, cài dependency serial:
+
+```powershell
+python -m pip install pyserial
+```
+
+Không cần mang theo `tests/`, `tools/`, `compat/`, hoặc cài package `zk-rfid-sdk` khi đã copy file. API vẫn là async/await; Pyodide dùng transport async do ứng dụng cung cấp. Các hàm cấp module tạo `Request` không tự gửi lệnh; dùng các method của `ZKReader` để điều khiển thiết bị.
+
+## Cài đặt để phát triển hoặc chạy demo
 
 Python >=3.11. Core không có dependency ngoài; serial là extra của CPython.
 
@@ -23,8 +43,7 @@ python -m venv .venv
 
 ```python
 import asyncio
-from zk_rfid import ZKReader, ReaderCapabilities, InventoryConfig
-from zk_rfid.transports.serial import SerialTransport
+from zk_rfid import ZKReader, SerialTransport, ReaderCapabilities, InventoryConfig
 
 async def main():
     async with ZKReader(
@@ -42,6 +61,8 @@ asyncio.run(main())
 ```
 
 Import/constructor không mở COM. Một reader sở hữu một transport và một RX task. Pyodide inject transport async; cùng source đã chạy qua [harness](tests/runtime/README.md).
+
+Từ `0.2.0.dev1`, mọi import SDK dùng `from zk_rfid import ...`, kể cả `SerialTransport`, `NationAdapter`, `FrameParser` và errors. Các đường dẫn con cũ như `zk_rfid.transports.serial` hoặc `zk_rfid.models` đã được bỏ. Nếu đang dùng editable install của bản cũ, chạy lại lệnh `pip install -e` ở trên và khởi động lại tiến trình Python/demo.
 
 ## GUI thử nghiệm
 

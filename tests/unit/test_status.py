@@ -1,5 +1,4 @@
-from zk_rfid.protocol.status import interpret_status
-from zk_rfid import Outcome
+from zk_rfid import Outcome, interpret_status
 
 
 def test_context_specific_status():

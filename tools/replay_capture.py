@@ -3,9 +3,10 @@
 import argparse
 import json
 from pathlib import Path
-from zk_rfid.protocol import FrameParser, crc16
-from zk_rfid.protocol.status import interpret_status
+
 from _common import emit
+
+from zk_rfid import FrameParser, crc16, interpret_status
 
 
 def replay(path):

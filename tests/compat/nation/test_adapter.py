@@ -1,7 +1,7 @@
 import pytest
-from zk_rfid import ZKReader, ReaderCapabilities, UnverifiedFeature, Outcome
-from zk_rfid.compat.nation import NationAdapter
+
 from tests.conftest import FakeTransport, response
+from zk_rfid import NationAdapter, Outcome, ReaderCapabilities, UnverifiedFeature, ZKReader
 
 pytestmark = pytest.mark.asyncio
 

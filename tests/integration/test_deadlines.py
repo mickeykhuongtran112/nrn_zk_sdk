@@ -1,8 +1,9 @@
 import asyncio
+
 import pytest
+
 from tests.conftest import FakeTransport, response
-from zk_rfid import ZKReader, TagTarget, TagMask, MemoryBank, Outcome, Confirmation
-from zk_rfid.errors import RequestTimeout
+from zk_rfid import Confirmation, MemoryBank, Outcome, RequestTimeout, TagMask, TagTarget, ZKReader
 
 pytestmark = pytest.mark.asyncio
 TARGET = TagTarget(mask=TagMask(MemoryBank.TID, 0, 16, bytes.fromhex("E280")))

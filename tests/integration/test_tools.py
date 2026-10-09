@@ -2,8 +2,9 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from zk_rfid.protocol import encode_command
+
 from tests.conftest import response
+from zk_rfid import encode_command
 
 ROOT = Path(__file__).parents[2]
 

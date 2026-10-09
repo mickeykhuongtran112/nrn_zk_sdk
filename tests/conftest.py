@@ -1,8 +1,10 @@
 """Deterministic in-memory UART peer; these are synthetic, never hardware captures."""
 
 import asyncio
+
 import pytest
-from zk_rfid.protocol.crc import append_crc, crc16
+
+from zk_rfid import append_crc, crc16
 
 
 def response(command, data=b"", status=0, address=0):

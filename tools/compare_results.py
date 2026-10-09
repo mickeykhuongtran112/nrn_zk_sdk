@@ -3,9 +3,10 @@
 import argparse
 import json
 from pathlib import Path
-from zk_rfid.compat.nation.mapping import power_dict, hex_epc
-from zk_rfid.protocol import encode_command
+
 from _common import emit
+
+from zk_rfid import encode_command, hex_epc, power_dict
 
 
 def compare(case):

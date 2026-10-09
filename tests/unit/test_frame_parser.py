@@ -1,8 +1,9 @@
 import random
+
 import pytest
-from zk_rfid.errors import ProtocolError, ValidationError
-from zk_rfid.protocol import FrameParser, decode_response, encode_command
+
 from tests.conftest import response
+from zk_rfid import FrameParser, ProtocolError, ValidationError, decode_response, encode_command
 
 
 @pytest.mark.parametrize("size", [1, 2, 3, 5, 11, 64, 257, 4096])

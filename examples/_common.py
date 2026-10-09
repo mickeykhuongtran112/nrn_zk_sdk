@@ -2,21 +2,22 @@
 
 import argparse
 import asyncio
+import json
 from dataclasses import asdict, is_dataclass
 from enum import Enum
-import json
+
 from zk_rfid import (
-    ZKReader,
-    ReaderCapabilities,
     InventoryConfig,
     InventoryData,
     InventoryMode,
     MemoryBank,
+    NationAdapter,
+    ReaderCapabilities,
+    SerialTransport,
     TagMask,
     TagTarget,
+    ZKReader,
 )
-from zk_rfid.compat.nation import NationAdapter
-from zk_rfid.transports.serial import SerialTransport
 
 
 def json_default(value):

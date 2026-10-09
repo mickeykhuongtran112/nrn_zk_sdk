@@ -6,10 +6,20 @@ import json
 import math
 import sys
 from pathlib import Path
-from zk_rfid import ZKReader, InventoryConfig, Outcome, ReaderState, TagMask, TagTarget
-from zk_rfid.protocol import FrameParser, crc16, encode_command
-from zk_rfid.protocol.crc import append_crc
-from zk_rfid.commands.inventory import decode_answer
+
+from zk_rfid import (
+    FrameParser,
+    InventoryConfig,
+    Outcome,
+    ReaderState,
+    TagMask,
+    TagTarget,
+    ZKReader,
+    append_crc,
+    crc16,
+    decode_answer,
+    encode_command,
+)
 
 
 def response(cmd, data=b"", status=0):
