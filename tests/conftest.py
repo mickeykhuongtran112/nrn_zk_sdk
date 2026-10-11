@@ -22,7 +22,7 @@ class FakeTransport:
         self.readers = 0
         self.max_readers = 0
         self.opened = False
-        self.baudrate = 57600
+        self.baudrate = 115200
 
     async def open(self):
         self.opened = True
@@ -89,7 +89,7 @@ class ModulePeer:
                 command, bytes((self.mode, 0, 3, 0, 4, 0, 1, 0, 32, 0)) + bytes(32) + bytes(2)
             )
         if command == 0x76:
-            self.mode = data[0]
+            self.mode = data[0] & 0x7F
             return response(command)
         return response(command)
 

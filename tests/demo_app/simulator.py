@@ -25,6 +25,7 @@ class DemoTransport:
             9: bytes((4, 0)),
             10: bytes(2),
             11: bytes((1, 0, 32, 0)),
+            16: bytes.fromhex("00000064"),
             25: bytes((15, 1, 3, 2, 3, 0)),
             29: bytes(5),
             31: bytes.fromhex("006700F1011D"),
@@ -62,7 +63,7 @@ class DemoTransport:
     def send(self, command, data=b"", status=0):
         self.rx.put_nowait(response(command, data, status, self.address))
 
-    def tag_payload(self, *, scenario=False):
+    def tag_payload(self, *, scenario=False, antenna=None):
         cfg = self.inventory_config
         n = (
             self.cfg[10][1]
@@ -76,13 +77,17 @@ class DemoTransport:
         phase = bool(self.cfg[9][0] & 16) if scenario else bool(cfg and cfg.phase)
         flags = len(value) | (128 if fast else 0) | (64 if phase else 0)
         trailer = bytes.fromhex("010002000DE31A") if phase else b""
-        ant = 0 if self.ports == 16 else 1
+        antenna = antenna or (cfg.antenna if cfg else 1)
+        ant = antenna - 1 if self.ports == 16 else 1 << (antenna - 1)
         return bytes((ant, flags)) + value + bytes((85,)) + trailer
 
     async def streaming(self, scenario):
         try:
             while self.opened:
-                self.send(0xEE, self.tag_payload(scenario=scenario))
+                # Synthetic port reports, not a model of hardware switching timing.
+                for antenna in range(1, self.ports + 1):
+                    if self.ant & (1 << (antenna - 1)):
+                        self.send(0xEE, self.tag_payload(scenario=scenario, antenna=antenna))
                 await asyncio.sleep(0.15)
         except asyncio.CancelledError:
             pass
@@ -141,7 +146,7 @@ class DemoTransport:
         elif c == 0x22:
             self.region = (
                 d[1:]
-                if len(d) == 4
+                if len(d) in (4, 7)
                 else bytes((((d[0] >> 6) << 2) | (d[1] >> 6), d[0] & 63, d[1] & 63))
             )
             out = b""
@@ -210,7 +215,7 @@ class DemoTransport:
                 self.send(c, bytes.fromhex("01001400000001"), 0x26)
             return
         elif c in (0x50, 0x76):
-            self.mode = d[0] if c == 0x76 else self.mode
+            self.mode = d[0] & 0x7F if c == 0x76 else self.mode
             if c == 0x50 or self.mode:
                 if self.stream:
                     self.stream.cancel()

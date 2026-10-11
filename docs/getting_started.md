@@ -53,11 +53,17 @@ Replace `COM3` with the actual port. Use `/dev/ttyUSB0` or the appropriate devic
 path on Linux. Close other applications using that port first.
 
 The SDK does not autodetect the baud rate, module model, or antenna layout.
-`--ports` accepts 1, 4, 8, or 16. Examples default to 57600 baud when `--baud` is
+`--ports` accepts 1, 4, 8, or 16. Examples default to 115200 baud when `--baud` is
 omitted; always pass the configured baud explicitly during initial setup.
 The default reader address is 0; use `--address` if yours differs.
 
 ## Read tags
+
+Answer and Scenario require Answer working mode. The SDK checks before inventory
+and raises a clear error if the reader is running Real-time/Trigger. On an open
+reader, explicitly call
+`set_working_mode(WorkingMode.ANSWER, persist=False)` to switch without changing
+the saved boot mode. No automatic mode write occurs when connecting.
 
 ```sh
 python examples/inventory_answer.py --port COM3 --baud 115200 --ports 1 --antenna 1 --scan-time 3
@@ -74,8 +80,9 @@ python examples/inventory_scenario.py --port COM3 --baud 115200 --ports 1 --ante
 ```
 
 Scenario temporarily applies and verifies its query configuration, then restores
-it after a successful stop. See [Inventory](inventory_modes.md) before choosing
-data types, multiple antennas, or persistent Real-time mode.
+it after a successful stop. `--seconds` controls this example's run time; Answer's
+`--scan-time` does not apply. See [Inventory](inventory_modes.md) for S-CST and
+cleanup, and [RF settings](rf_settings.md) for region and profile configuration.
 
 ## Integrate
 

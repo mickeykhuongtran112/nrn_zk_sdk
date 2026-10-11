@@ -13,18 +13,23 @@ Gen2 reader workflows; it does not implement every vendor-demo control.
 | Antenna control, temperature, return loss | Implemented with [layout limits](supported_devices.md) |
 | Buzzer, GPIO, reader indicator | Implemented; reader indicator is not a tag-LED command |
 | Answer EPC/TID/FastID/Mix and phase | Implemented; Mix limited to 31 words |
-| Scenario query/TID/mask/custom profiles | Managed start/stop with snapshot and restore |
+| Scenario query/TID/mask | Managed start/stop; changed CFG9/10/11 and antenna settings restored after confirmed stop |
+| Scenario custom profiles | CFG31 get/set; three ordered slots, separate from session cleanup |
+| S-PRO/S-RPT/S-CST/S-CTP selectors | Native CFG9 encoding; no emulation of firmware scheduling or demo pre-Select sequence |
+| Scenario A\|B target | Demo option; SDK accepts only A or B pending firmware confirmation |
 | Real-time/trigger configuration | Implemented; trigger requires suitable wiring/firmware |
 | Buffer inventory, read, clear, count | Implemented; 16-port format requires confirmation |
 | Memory, EPC/PC, passwords, BlockWrite/Erase | Implemented with explicit targeting and optional read-back |
 | Gen2 Lock and Kill | Implemented; irreversible operations require deliberate tag selection |
-| Relay, OUT1–4 notification pulse, Range Control | No corresponding API |
-| Custom frequency start/count/spacing, dedicated Ex10 version query | No corresponding API |
+| Range Control | CFG16 get/set, native 0-100; RF scale unspecified |
+| Relay, OUT1–4 notification pulse | No corresponding API |
+| Custom frequency start/count/spacing | `set_custom_region()` / `get_custom_region()`; Web Serial methods available |
+| Dedicated Ex10 version query | No corresponding API |
 | MarginRead, U9 batch lock, tag LED | Not implemented |
 | NXP Privacy/EAS, Monza QT, EM4325 | No supported tag-specific contract |
 | Network module configuration, ISO 18000-6B | Outside scope |
 
-The [test console](../tests/demo_app/README.md) exposes 72 operations plus connection
+The [test console](../tests/demo_app/README.md) exposes 74 operations plus connection
 open/close. That coverage is checked against public `ZKReader` methods; it is not
 a claim that every vendor control or firmware feature is supported.
 

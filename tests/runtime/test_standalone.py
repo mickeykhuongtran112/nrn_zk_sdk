@@ -16,7 +16,6 @@ def test_copied_sdk_runs_in_isolated_python(tmp_path):
     script = r"""
 import asyncio
 import importlib.abc
-import inspect
 import json
 import logging
 import pickle
@@ -28,7 +27,7 @@ sys.path.insert(0, str(Path.cwd()))
 
 class NoOptionalImports(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
-        if fullname == "serial" or fullname.startswith("zk_rfid."):
+        if fullname in ("serial", "mapping", "compat", "nrn") or fullname.startswith("zk_rfid."):
             raise AssertionError("Unexpected runtime dependency: " + fullname)
 
 guard = NoOptionalImports()
@@ -48,7 +47,9 @@ assert get_type_hints(sdk.ZKReader.start_inventory)["return"] is sdk.InventorySe
 assert get_type_hints(sdk.InventoryConfig)["mask"] == sdk.TagMask | None
 assert pickle.loads(pickle.dumps(sdk.InventoryConfig())) == sdk.InventoryConfig()
 assert sdk.rssi_to_dbm(60) == -75 and sdk.rssi_to_dbm(110) == -25
-assert inspect.getfile(sdk.NationAdapter) == sdk.__file__
+assert not hasattr(sdk, "NationAdapter")
+assert not hasattr(sdk, "RFMapping")
+assert not hasattr(sdk, "Equivalence")
 transport = sdk.SerialTransport("COM3", 115200)
 assert transport._serial is None
 reader = sdk.ZKReader(transport)

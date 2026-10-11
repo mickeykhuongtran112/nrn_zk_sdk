@@ -73,6 +73,9 @@ async def test_simulation_config_and_inventory_use_real_codec_and_trace():
         assert (await run(c, "set_power", {"power_dbm": 17}))["state"] == "success"
         power = await run(c, "get_power")
         assert power["result"]["data"] == [17]
+        assert (await run(c, "get_range_control"))["result"]["data"] == 100
+        assert (await run(c, "set_range_control", {"value": 90}))["state"] == "success"
+        assert (await run(c, "get_range_control"))["result"]["data"] == 90
         out = await run(c, "inventory_once", {"config": {"data": "epc", "scan_time_100ms": 3}})
         assert out["result"]["reports"][0]["epc"] == "E20034120123456789000001"
         assert c.snapshot()["received_count"] == 1

@@ -176,6 +176,11 @@ def check_archive(path):
             "tests/runtime/runtime_checks.py",
             "compat/nation/LICENSE",
             "compat/nation/nrn.py",
+            "mapping/__init__.py",
+            "mapping/nation_to_zk/adapter.py",
+            "mapping/nation_to_zk/values.py",
+            "mapping/nation_to_zk/api_map.md",
+            "mapping/nation_to_zk/rf_choices.json",
         }
         for name in sorted(required - contents.keys()):
             issues.append(f"{path.name}: required source file missing: {name}")

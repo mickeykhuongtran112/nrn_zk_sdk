@@ -11,7 +11,6 @@ from zk_rfid import (
     InventoryData,
     InventoryMode,
     MemoryBank,
-    NationAdapter,
     ReaderCapabilities,
     SerialTransport,
     TagMask,
@@ -37,7 +36,7 @@ def show(value):
 def parser_for(name):
     p = argparse.ArgumentParser(description=f"ZK SDK example: {name}")
     p.add_argument("--port", required=True, help="Explicit COM port; no automatic discovery")
-    p.add_argument("--baud", type=int, default=57600)
+    p.add_argument("--baud", type=int, default=115200)
     p.add_argument("--address", type=lambda s: int(s, 0), default=0)
     p.add_argument("--ports", type=int, choices=(1, 4, 8, 16), default=1)
     p.add_argument("--timeout", type=float, default=4.0)
@@ -122,6 +121,8 @@ async def run_example(name, args):
                     pass
                 finally:
                     show(await session.stop())
+                    for report in session.drain():
+                        show(report)
             else:
                 show(await reader.inventory_once(cfg))
         elif name in ("read_memory", "write_user_memory", "write_epc"):
@@ -155,11 +156,6 @@ async def run_example(name, args):
                         bytes.fromhex(args.data), target=target, access_password=password
                     )
                 )
-        elif name == "nation_adapter":
-            adapter = NationAdapter(reader)
-            show(adapter.get_sdk_info())
-            show(await adapter.Query_Reader_Information())
-            show(await adapter.query_reader_power())
 
 
 def main(name):

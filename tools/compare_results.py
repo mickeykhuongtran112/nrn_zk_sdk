@@ -2,11 +2,16 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from _common import emit
 
-from zk_rfid import encode_command, hex_epc, power_dict
+from zk_rfid import encode_command
+
+# Support the documented direct script command from a source checkout.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from mapping.nation_to_zk.values import hex_epc, power_dict
 
 
 def compare(case):
@@ -40,7 +45,7 @@ def main():
     p.add_argument(
         "manifest",
         nargs="?",
-        default=str(Path(__file__).parents[1] / "compat/nation/mapping_cases.json"),
+        default=str(Path(__file__).parents[1] / "mapping/nation_to_zk/mapping_cases.json"),
     )
     args = p.parse_args()
     cases = json.loads(Path(args.manifest).read_text(encoding="utf-8"))["cases"]

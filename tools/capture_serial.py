@@ -55,7 +55,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ("port", "model", "firmware", "output"):
         p.add_argument("--" + name, required=True)
-    p.add_argument("--baud", type=int, default=57600)
+    p.add_argument("--baud", type=int, default=115200)
     p.add_argument("--ports", type=int, choices=(1, 4, 8, 16), default=1)
     p.add_argument("--antenna", type=int, default=1)
     p.add_argument("--seconds", type=float, default=10)

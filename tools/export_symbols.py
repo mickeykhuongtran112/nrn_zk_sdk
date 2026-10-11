@@ -1,4 +1,4 @@
-"""Generate the API index and machine-readable symbols from the SDK source."""
+"""Generate the API index, symbols, and RF profile reference from the SDK source."""
 
 import argparse
 import ast
@@ -29,9 +29,6 @@ def collect():
             record["status"] = (
                 "unsupported by design"
                 if name in ("VENDOR_TAG_COMMANDS", "require_vendor_feature")
-                or name in ("NationAdapter.get_beeper", "NationAdapter.set_filter_settings")
-                else "unverified mapping; rejected explicitly"
-                if name == "NationAdapter.set_rf_band"
                 else "transport interface contract"
                 if name.startswith("AsyncTransport")
                 else "implemented"
@@ -105,7 +102,7 @@ def render(records):
         "",
         "## Supporting symbols",
         "",
-        "Types, transport interfaces, command builders, decoders, and adapter methods.",
+        "Native types, transport interfaces, command builders, and decoders.",
         "Module-level command builders return `Request` values without device I/O.",
         "Hardware coverage is recorded in [validation](validation.md).",
         "",
@@ -118,9 +115,36 @@ def render(records):
         if r["file"] != current:
             current = r["file"]
             lines += ["", f"### {current}", ""]
-        status = "" if r["status"].startswith("implemented") else " — **" + r["status"] + "**"
+        status = "" if r["status"].startswith("implemented") else " â€” **" + r["status"] + "**"
         lines.append(f"- **{r['kind']}** [`{r['name']}`](../{r['file']}#L{r['line']}){status}")
     lines += ["", "</details>"]
+    return "\n".join(lines) + "\n"
+
+
+def render_profiles():
+    tree = ast.parse((ROOT / "src/zk_rfid.py").read_text(encoding="utf-8"))
+    table = next(
+        node.value
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "PROFILES" for t in node.targets)
+    )
+    lines = [
+        "# RF profiles",
+        "",
+        "Known native Ex10 IDs from the SDK's `PROFILES` table. See [RF settings](rf_settings.md)",
+        "for selection and [Inventory](inventory_modes.md#s-cst) for S-CST slots.",
+        "",
+        "Generated with `python tools/export_symbols.py`; edit source metadata to update it.",
+        "Availability depends on reader firmware and tag support. Encoding labels are retained",
+        "from the manual; these entries are not measured performance or detected capabilities.",
+        "",
+        "| ID | Modulation | PIE | Tari (us) | BLF (kHz) | Encoding |",
+        "|---:|---|---:|---:|---:|---|",
+    ]
+    for node in table.values:
+        values = [ast.literal_eval(arg) for arg in node.args]
+        lines.append("| " + " | ".join(str(value) for value in values) + " |")
     return "\n".join(lines) + "\n"
 
 
@@ -132,6 +156,7 @@ def main():
     outputs = {
         ROOT / "docs/functions_implemented.md": render(records),
         ROOT / "docs/api_symbols.json": json.dumps(records, ensure_ascii=False, indent=2) + "\n",
+        ROOT / "docs/rf_profiles.md": render_profiles(),
     }
     if args.check:
         stale = [

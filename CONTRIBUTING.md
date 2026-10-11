@@ -10,22 +10,24 @@ python -m pip install -e ".[dev,serial]"
 ## Checks
 
 ```sh
-python -m ruff check src tests tools examples web
-python -m ruff format --check src tests tools examples web
+python -m ruff check src tests tools examples web mapping
+python -m ruff format --check src tests tools examples web mapping
 python -m pytest
 python tools/export_symbols.py --check
 python tools/compare_results.py
+python tools/check_nation_mapping.py
 python tools/check_repository.py
 ```
 
-After changing public source signatures or docstrings, regenerate the API index
-with `python tools/export_symbols.py` and review the generated diff.
+After changing public signatures, docstrings, or `PROFILES`, regenerate the API
+index and RF profile reference with `python tools/export_symbols.py` and review
+the generated diff.
 
 Browser checks use Node.js 22 and a separately installed runtime:
 
 ```sh
 npm install --prefix local_data/pyodide pyodide@314.0.7 typescript@5.9.3
-node --test tests/browser/demo_client.test.cjs tests/browser/webserial.test.mjs
+node --test tests/browser/demo_client.test.cjs tests/browser/webserial.test.mjs tests/browser/nation_service.test.mjs
 node local_data/pyodide/node_modules/typescript/bin/tsc --noEmit --strict --lib es2022,dom web/zk-rfid-webserial.d.ts
 node tests/runtime/run_pyodide.mjs local_data/pyodide/node_modules/pyodide/pyodide.mjs
 ```
@@ -35,7 +37,10 @@ to select a device explicitly.
 
 ## Changes
 
-Keep the runtime self-contained in `src/zk_rfid.py`. Use `ZKReader` as the device
+Keep the native runtime self-contained in `src/zk_rfid.py`. Maintain optional
+cross-vendor conversions under `mapping/nation_to_zk`, never in the core or the
+reference driver. Run `python tools/check_nation_mapping.py` when changing the
+reference API map or RF choices. Use `ZKReader` as the device
 I/O entry point and preserve native results, uncertain outcomes, and explicit
 recovery. Add a regression for protocol or lifecycle fixes; a simulated result
 must not be presented as hardware validation.
@@ -75,7 +80,7 @@ python tools/check_repository.py --dist dist
 
 Review both archives. The wheel should contain `zk_rfid.py` and package metadata;
 the source archive should also include examples, tests, browser assets, diagrams,
-and the licensed reference. Neither should contain local plans, secrets, raw logs,
+the optional mapping package, and the licensed reference. Neither should contain local plans, secrets, raw logs,
 or vendor binaries.
 
 Inspect `git status --short`, the diff, and any existing Git history before making

@@ -37,9 +37,21 @@ export interface InventoryOutcome {
   termination_reason: string;
   received_count: number;
   dropped_count: number;
+  quarantined_count: number;
+  quarantined_frames: Array<{
+    address: number; command: number; status: number; data: string; raw: string;
+  }>;
   [key: string]: unknown;
 }
 export interface TagMask { bank: 1 | 2 | 3; bit_address: number; bit_length: number; data: string; }
+export interface CustomRegion {
+  /** First channel center in kHz, not the lower occupied-band edge. */
+  start_frequency_khz: number;
+  /** Number of channels, 1..61. */
+  channel_count: number;
+  /** Spacing in kHz, in multiples of 125. Demo Space=4 means 500 here. */
+  spacing_khz: number;
+}
 export interface InventoryConfig {
   antenna?: number;
   data?: "epc" | "tid" | "fastid" | "mix";
@@ -78,7 +90,7 @@ export interface ReaderEvents {
   tag: TagReport;
   trace: { kind: string; [key: string]: unknown };
   state: { state: string };
-  error: { type: string; message: string };
+  error: { type: string; message: string; inventory_outcome?: InventoryOutcome | null };
   heartbeat: Record<string, unknown>;
 }
 export class ZKSDKError extends Error {
@@ -104,8 +116,12 @@ export class ZKWebSerialReader extends EventTarget {
   getReaderInfo(): Promise<CommandResult<Record<string, unknown>>>;
   getPower(): Promise<CommandResult<number[]>>;
   setPower(power: number | number[], persist?: boolean): Promise<CommandResult<null>>;
+  /** Read the active custom plan; successful data is null for a native region. */
+  getCustomRegion(): Promise<CommandResult<CustomRegion | null>>;
+  /** Apply a channel plan. Volatile unless persist is true. Does not start inventory. */
+  setCustomRegion(region: CustomRegion, persist?: boolean): Promise<CommandResult<null>>;
   inventoryOnce(config?: InventoryConfig): Promise<InventoryOutcome>;
-  startInventory(options?: { mode?: "answer" | "scenario" | "real_time"; config?: InventoryConfig; queue_size?: number; trigger?: boolean }): Promise<{ started: true; mode: string }>;
+  startInventory(options?: { mode?: "answer" | "scenario" | "real_time"; config?: InventoryConfig; queue_size?: number; trigger?: boolean; antenna_mask?: number | null; antenna_sequence?: number[] | null }): Promise<{ started: true; mode: string }>;
   stopInventory(): Promise<InventoryOutcome>;
   writeEpc(options: { targetEpc: string; newEpc: string; accessPassword?: string; verify?: boolean }): Promise<CommandResult<string>>;
   addEventListener<K extends keyof ReaderEvents>(type: K, listener: (event: CustomEvent<ReaderEvents[K]>) => void, options?: boolean | AddEventListenerOptions): void;

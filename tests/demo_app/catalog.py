@@ -23,10 +23,10 @@ from zk_rfid import (
 
 GROUPS = {
     "Reader": "get_reader_info get_serial_number get_capabilities set_address set_baudrate set_inventory_time set_interface",
-    "RF & antenna": "get_power set_power get_write_power set_write_power get_write_retries set_write_retries get_antennas set_antennas get_antenna_check set_antenna_check get_region set_region get_profile set_profile get_drm set_drm",
+    "RF & antenna": "get_power set_power get_write_power set_write_power get_write_retries set_write_retries get_antennas set_antennas get_antenna_check set_antenna_check get_region set_region get_custom_region set_custom_region get_profile set_profile get_drm set_drm",
     "Inventory": "inventory_once inventory_single inventory_matching_epc start_inventory stop_inventory",
     "Tag memory": "read_memory write_memory write_epc write_epc_single set_access_password set_kill_password lock_tag kill_tag block_write block_erase select_tag",
-    "Ex10 config": "get_config set_config get_scan_parameters set_scan_parameters get_tag_focus set_tag_focus get_query_parameters set_query_parameters get_tid_parameters set_tid_parameters get_inventory_mask set_inventory_mask get_custom_profiles set_custom_profiles",
+    "Ex10 config": "get_config set_config get_scan_parameters set_scan_parameters get_tag_focus set_tag_focus get_range_control set_range_control get_query_parameters set_query_parameters get_tid_parameters set_tid_parameters get_inventory_mask set_inventory_mask get_custom_profiles set_custom_profiles",
     "Real-time": "set_real_time_config get_working_mode set_working_mode get_heartbeat_interval set_heartbeat_interval",
     "Buffer": "inventory_to_buffer read_buffer get_buffer_length set_buffer_length get_buffer_count clear_buffer",
     "I/O & diagnostics": "set_buzzer pulse_indicator get_gpio set_gpio get_temperature measure_return_loss get_return_loss_threshold set_return_loss_threshold",
@@ -44,6 +44,7 @@ TAG_WRITES = {
 }
 DEFAULTS = {
     "power_dbm": 20,
+    "value": 100,
     "count": 1,
     "address": 0,
     "baudrate": 115200,
@@ -57,6 +58,9 @@ DEFAULTS = {
     "output1": False,
     "output2": False,
     "frequency_khz": 915250,
+    "start_frequency_khz": 920625,
+    "channel_count": 10,
+    "spacing_khz": 250,
     "threshold_db": 6,
     "number": 9,
     "data": "",
@@ -84,7 +88,7 @@ CHOICES = {
     "lock_target": [0, 1, 2, 3, 4],
     "protection": [0, 1, 2, 3],
     "data_kind": ["epc", "tid"],
-    "number": [7, 8, 9, 10, 11, 25, 29, 31],
+    "number": [7, 8, 9, 10, 11, 16, 25, 29, 31],
 }
 HELP = {
     "target": "Explicit full EPC or mask. TID selection should identify one physical tag.",
@@ -99,17 +103,18 @@ HELP = {
     "data": "Hex bytes, whole 16-bit words for tag writes.",
     "max_bytes": "Maximum stored EPC/TID length, not buffer capacity. Changing this clears buffer.",
     "profile_ids": "Three native 16-bit profile IDs; no NATION mapping.",
+    "value": "Native Range Control, integer 0-100; no established distance, dB or percent scale.",
 }
 LIMITATIONS = [
     {
-        "feature": "Relay / notification pulse / Range Control",
+        "feature": "Relay / notification pulse",
         "status": "not implemented",
         "reason": "Demo DLL exports exceed the V2.25 wire contract implemented here; exact opcode/layout still needed.",
     },
     {
-        "feature": "Custom frequency table / Ex10 version query",
+        "feature": "Ex10 version query",
         "status": "not implemented",
-        "reason": "Present in vendor DLL. Native SDK currently exposes region/channel tables and reader firmware only.",
+        "reason": "Present in vendor DLL. Native SDK currently exposes reader firmware through the standard info command.",
     },
     {
         "feature": "MarginRead / U9 batch lock / tag LED",

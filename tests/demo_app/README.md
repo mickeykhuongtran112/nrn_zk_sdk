@@ -30,7 +30,7 @@ is off. Other serial applications must release the port first.
 
 ## Commands
 
-The console exposes 72 operations plus connection open/close. Forms convert values
+The console exposes 74 operations plus connection open/close. Forms convert values
 to SDK types; **Advanced JSON arguments** supports nested inputs. Click
 **Use this JSON** to apply them. Byte strings are hexadecimal; memory addresses use
 16-bit words, while mask addresses use bits.
@@ -44,8 +44,8 @@ Results retain native `outcome`, `status`, `tag_error`, `confirmation`,
 Only its final result describes device execution.
 
 `start_inventory(mode="real_time")` manages the report iterator and stop.
-Calling `set_working_mode` directly stores a reader mode but does not create that
-session. The console attempts to stop a directly selected Real-time/Trigger mode
+Calling `set_working_mode` directly selects a mode but does not create that
+session; only `persist=True` changes the boot mode. The console attempts to stop a directly selected Real-time/Trigger mode
 when requested or disconnected.
 
 ## Logs and exports

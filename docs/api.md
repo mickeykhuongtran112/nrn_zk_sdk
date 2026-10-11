@@ -75,7 +75,38 @@ transaction, not the number of physical tags successfully identified.
 manager. A bounded queue reports overflow explicitly. Stream consumers retain
 their own reports; the session outcome provides counters.
 
+Scenario accepts `antenna_mask` as a Start keyword: `0b1101` selects ANT1/3/4 on
+a declared four-port reader. It overrides `config.antenna`, is verified before
+Start, and the previous mask is restored after confirmed Stop. Without a mask,
+the session selects `config.antenna`. Other modes reject the keyword.
+Answer accepts `antenna_sequence=(1, 3, 4)` to repeat rounds in that order, including
+FastID. Each round selects one port; this is host scheduling and does not change
+saved antenna configuration. Multiple ports require a nonzero `scan_time_100ms`.
+`reader.stop_inventory()` waits for an in-progress Start before stopping;
+cancelling Stop still waits for cleanup before propagating cancellation.
+
+After `stop()`, use `session.drain()` to take queued events with the same consumer.
+Stop quarantines trailing `0xEE` frames separately: `quarantined_count` is the
+total and `quarantined_frames` holds up to 32 raw frames. Such a run is partial,
+even when stopping and restoring configuration succeeded.
+
+A failed Answer interrupt still finalizes the session with an unknown outcome
+and permits `drain()`. Recovery is required before issuing further commands.
+
+If no session remains but the reader is `unknown`, `stop_inventory()` returns
+`outcome="unknown"`, `complete=False`, and `termination_reason="stop_unconfirmed"`.
+It sends no guessed Stop command. This also applies after a lost Start ACK or an
+earlier failed Stop. `is_inventory_running=False` only describes host ownership;
+it does not confirm RF has stopped. Follow [recovery](#recovery) before reuse.
+
 See [Inventory](inventory_modes.md) for mode-specific configuration and stop behavior.
+For Scenario, `InventoryConfig` overrides CFG9/10/11 for the run; use
+`ScenarioSession.S_CST` in `config.session` to select custom profiles. CFG31 is
+configured separately and is not restored by `InventorySession.stop()`.
+
+`get_inventory_mask()` and decoded `get_config(11)` return `None` for a disabled
+mask. This is a successful result, not a decoding failure; `raw_data` still holds
+the CFG11 payload. Active masks return `TagMask`.
 
 ## Tag access
 
@@ -120,9 +151,12 @@ the remaining bytes; it does not restart the command.
 | Setting | Units or behavior |
 |---|---|
 | Read/write power | Integer dBm, 0–30; per-port values follow antenna order |
-| Region | Native band and channel IDs; frequency helpers reject ambiguous bands 21 and 29 |
-| RF profile | Native ID; extended 16-bit format by default; legacy format is explicit |
-| Inventory scan time | 100 ms per unit |
+| Region | Native band, inclusive zero-based channel limits; see [RF settings](rf_settings.md) |
+| Custom Region | `set_custom_region(start_frequency_khz, channel_count, spacing_khz)`; frequencies in kHz, spacing a multiple of 125; volatile by default |
+| RF profile | Native ID; extended 16-bit format by default; see [profile table](rf_profiles.md) |
+| Custom profiles | Three ordered CFG31 slots for S-CST; separate from the single RF profile |
+| Range Control | Native integer 0-100, CFG16; no distance/dB conversion; see [RF settings](rf_settings.md#range-control) |
+| Inventory scan time | 100 ms per unit for Answer rounds; does not time-limit Scenario |
 | Indicator pulse | 50 ms per unit |
 | Heartbeat interval | 30 s per unit |
 | Real-time pause | One of 10, 20, 30, 50, or 100 ms |
@@ -130,8 +164,9 @@ the remaining bytes; it does not restart the command.
 | Reader interface | Takes effect after a power cycle |
 
 Methods with `persist=False` default to volatile changes. Do not apply that rule
-to setters without a `persist` argument: Real-time configuration and working mode
-are stored by the reader. See [Commands](protocol/zk_commands.md).
+to setters without a `persist` argument: `set_real_time_config()` stores its
+settings. Work Mode now defaults to temporary; pass `persist=True` explicitly
+to change startup behavior. See [Commands](protocol/zk_commands.md).
 
 Reports retain raw RSSI and phase alongside conversion metadata. The dBm estimate
 and phase convention are described in [RSSI and phase](phase_and_live_view.md).

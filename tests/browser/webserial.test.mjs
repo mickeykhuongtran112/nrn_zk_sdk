@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -95,7 +96,7 @@ from pyodide.ffi import to_js
 from test_simulator import DemoTransport
 from zk_rfid import ZKReader
 import zk_browser
-assert len(zk_browser.METHODS) == 72
+assert len(zk_browser.METHODS) == 76
 assert ZKReader.__module__ == "zk_rfid"
 peer = DemoTransport(4)
 await peer.open()
@@ -125,10 +126,52 @@ rx_pump = asyncio.create_task(feed_rx())
     assert.deepEqual((await reader.getPower()).data, [20, 20, 20, 20]);
     await reader.setPower([17, 18, 19, 20]);
     assert.deepEqual((await reader.getPower()).data, [17, 18, 19, 20]);
+    // Generic Answer sequencing is also available to the migration FastID path.
+    const fastBefore = tags.length, fastWrites = port.writes.length;
+    await reader.startInventory({ mode: "answer", antenna_sequence: [4, 1, 3], config: { data: "fastid", scan_time_100ms: 3 } });
+    await new Promise(resolve => setTimeout(resolve, 60));
+    assert.equal((await reader.stopInventory()).complete, true);
+    const antennaRequests = port.writes.slice(fastWrites).filter(frame => frame[2] === 1);
+    assert.deepEqual(antennaRequests.slice(0, 3).map(frame => (frame.at(-4) & 0x7F) + 1), [4, 1, 3]);
+    assert(tags.length > fastBefore);
+    tags.length = 0;
+    // A terminal antenna error must end FastID and reach JS after Stop cleanup.
+    const antennaErrorHex = pyodide.runPython('__import__("zk_rfid").append_crc(bytes.fromhex("05 00 01 F8")).hex()');
+    const antennaErrorFrame = Uint8Array.from(antennaErrorHex.match(/../g), byte => parseInt(byte, 16));
+    const failedWrites = port.writes.length;
+    port.handler = data => data[2] === 1 ? port.feed(antennaErrorFrame) : peerWrite(data);
+    const failedEvent = once(reader, "error", { signal: AbortSignal.timeout(3000) });
+    await reader.startInventory({ mode: "answer", antenna_sequence: [4, 1, 3], config: { data: "fastid" } });
+    const [failedFastID] = await failedEvent;
+    assert.equal(failedFastID.detail.type, "DeviceError");
+    assert.equal(failedFastID.detail.inventory_outcome.status, 0xF8);
+    assert.equal(reader.state, "idle");
+    assert.equal(port.writes.slice(failedWrites).filter(frame => frame[2] === 1).length, 1);
+    const failedStop = await reader.stopInventory();
+    assert.equal(failedStop.outcome, "partial");
+    assert.equal(failedStop.complete, false);
+    assert.equal(failedStop.status, 0xF8);
+    port.handler = data => peerWrite(data);
+    const oldRegion = (await reader.call("get_region")).data;
+    assert.equal((await reader.getCustomRegion()).data, null);
+    const custom = { start_frequency_khz: 920625, channel_count: 10, spacing_khz: 250 };
+    assert.equal((await reader.setCustomRegion(custom)).outcome, "success");
+    assert.deepEqual((await reader.getCustomRegion()).data, custom);
+    assert.deepEqual((await reader.call("get_region")).data, custom);
+    await reader.call("set_region", { region: oldRegion });
+    assert.equal((await reader.getCustomRegion()).data, null);
+    const originalRange = (await reader.call("get_range_control")).data;
+    assert.equal(originalRange, 100);
+    assert.equal((await reader.call("set_range_control", { value: 90 })).outcome, "success");
+    assert.equal((await reader.call("get_range_control")).data, 90);
+    await reader.call("set_range_control", { value: originalRange });
+    assert.equal((await reader.call("get_range_control")).data, originalRange);
     const before = port.writes.length;
     await assert.rejects(reader.call("__getattribute__", {}), /Unknown SDK/);
     await assert.rejects(reader.call("set_baudrate", { baudrate: 57600 }), /Transport must implement/);
     await assert.rejects(reader.call("inventory_once", { config: { antenna: 5 } }), /antenna/);
+    await assert.rejects(reader.call("set_range_control", { value: 101 }), /range_control/);
+    await assert.rejects(reader.setCustomRegion({ ...custom, spacing_khz: 200 }), /spacing_khz/);
     assert.equal(port.writes.length, before);
     const answer = await reader.inventoryOnce({ antenna: 1, scan_time_100ms: 3 });
     assert.equal(answer.complete, true);
@@ -139,6 +182,33 @@ rx_pump = asyncio.create_task(feed_rx())
     assert.equal(outcome.outcome, "success");
     assert(tags.length > 0);
     assert(tags.some(tag => tag.phase_begin_degrees != null));
+    assert(tags.every(tag => tag.antenna === 2));
+    // Multiple selected ports use one native Start and restore the prior mask.
+    const originalMask = (await reader.call("get_antennas")).data;
+    const multiBefore = port.writes.length, tagsBefore = tags.length;
+    await reader.startInventory({ antenna_mask: 0b1101, config: { phase: true } });
+    await new Promise(resolve => setTimeout(resolve, 120));
+    assert.equal((await reader.stopInventory()).complete, true);
+    assert.deepEqual([...new Set(tags.slice(tagsBefore).map(tag => tag.antenna))].sort(), [1, 3, 4]);
+    assert.equal(port.writes.slice(multiBefore).filter(frame => frame[2] === 0x50).length, 1);
+    assert.equal((await reader.call("get_antennas")).data, originalMask);
+    assert.deepEqual((await reader.getPower()).data, [17, 18, 19, 20]);
+    // Stop requested while Get Work Mode is pending must wait for Start and stop it.
+    let release, entered;
+    const held = new Promise(resolve => { release = resolve; });
+    const queried = new Promise(resolve => { entered = resolve; });
+    port.handler = async data => {
+      if (data[2] === 0x77) { entered(); await held; }
+      return peerWrite(data);
+    };
+    const starting = reader.startInventory();
+    await queried;
+    const stopping = reader.stopInventory();
+    release();
+    await starting;
+    assert.equal((await stopping).complete, true);
+    assert.equal(reader.state, "idle");
+    port.handler = data => peerWrite(data);
     assert(events.some(event => event.kind === "tx"));
     assert(events.some(event => event.kind === "frame"));
     const written = await reader.writeEpc({ targetEpc: answer.reports[0].epc, newEpc: "ABCD0001" });
@@ -174,6 +244,12 @@ rx_pump = asyncio.create_task(feed_rx())
     assert.equal(unknown.confirmation, "transmitted");
     assert.equal(reader.state, "unknown");
     assert.equal(port.writes.length, writesBeforeTimeout + 1, "uncertain writes must not be retried");
+    const unknownStop = await reader.stopInventory();
+    assert.equal(unknownStop.outcome, "unknown");
+    assert.equal(unknownStop.complete, false);
+    assert.equal(unknownStop.termination_reason, "stop_unconfirmed");
+    assert.equal(reader.state, "unknown");
+    assert.equal(port.writes.length, writesBeforeTimeout + 1, "Stop must not guess a mode after timeout");
     await assert.rejects(reader.getReaderInfo(), /resynchronization/);
     await reader.disconnect();
     await assert.rejects(reader.connect({ port }), /recover: true/);

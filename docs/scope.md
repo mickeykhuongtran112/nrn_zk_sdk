@@ -9,6 +9,10 @@ transport. `SerialTransport` provides the desktop serial connection; the
 [Web Serial bridge](../web/README.md) connects browser applications.
 The [local test console](../tests/demo_app/README.md) is a separate CPython tool.
 
+NATION reference code is kept under `compat/nation`. Its optional API adapter and
+integration decisions live under [mapping/nation_to_zk](../mapping/nation_to_zk/README.md).
+The native core does not import either directory.
+
 The SDK does not implement application workflows such as checkout, attendance,
 or warehouse reconciliation. ISO 18000-6B, a NATION wire emulator, shared network
 services, and unsupported chip-specific extensions are outside its scope.

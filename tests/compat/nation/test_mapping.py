@@ -1,15 +1,14 @@
 import pytest
 
+from mapping.nation_to_zk import RFMapping
+from mapping.nation_to_zk.values import hex_epc, power_dict, tag_dict
+
 from zk_rfid import (
     InventoryConfig,
-    RFMapping,
     TagReport,
     UnverifiedFeature,
     ValidationError,
     decode_answer,
-    hex_epc,
-    power_dict,
-    tag_dict,
 )
 
 

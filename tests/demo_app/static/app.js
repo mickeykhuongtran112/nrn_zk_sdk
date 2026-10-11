@@ -243,7 +243,7 @@ function renderSnapshot(s) {
   $("simBanner").classList.toggle("hidden", !s.connected || !source);
   $("simFaults").classList.toggle("hidden", !s.connected || !source);
   $("stateValue").textContent = s.state.replaceAll("_", " ");
-  $("modeValue").textContent = "Saved mode: " + (s.working_mode === null ? "unknown" : ["Answer", "Real-time", "Trigger"][s.working_mode]) + (s.pending_command !== null ? " · pending " + hex(s.pending_command) : "");
+  $("modeValue").textContent = "Current mode: " + (s.working_mode === null ? "unknown" : ["Answer", "Real-time", "Trigger"][s.working_mode]) + (s.pending_command !== null ? " · pending " + hex(s.pending_command) : "");
   $("sessionValue").textContent = "Active session: " + ({scenario: "Scenario · 0x50 / 0xEE", answer: "Answer · repeated rounds", real_time: "Real-time · 0x76 / 0xEE"}[s.session] || "none");
   const loss = (s.diagnostics.discarded_bytes || 0) + s.tag_overflow + s.observer_errors + (s.stream_health?.dropped || 0);
   $("healthValue").textContent = s.fault ? "Unknown" : loss || s.stream_health?.error ? "Attention" : s.connected ? "Healthy" : "—";

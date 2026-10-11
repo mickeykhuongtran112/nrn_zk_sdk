@@ -12,6 +12,7 @@ Comments, docstrings, and four diagnostic messages have been translated into
 English. Protocol logic is unchanged; this is a documented local revision,
 not a byte-identical upstream copy.
 
-[mapping_cases.json](mapping_cases.json) contains three offline conversions and
-two unverified RF/RSSI mappings. The runtime adapter is in
-[src/zk_rfid.py](../../src/zk_rfid.py). See the [adapter guide](../../docs/nation_comparison.md).
+This directory contains reference material only. The optional runtime adapter,
+conversion cases and full API manual are in
+[mapping/nation_to_zk](../../mapping/nation_to_zk/README.md).
+Neither the native ZK core nor that adapter imports this driver.

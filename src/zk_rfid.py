@@ -9,7 +9,7 @@ Only SerialTransport.open() needs the optional pyserial dependency.
 CPython and Pyodide share the same injected AsyncTransport contract.
 
 Sections below contain models, protocol, pure command builders/decoders,
-transport, dispatcher, inventory sessions, ZKReader and the NATION API adapter.
+transport, dispatcher, inventory sessions and ZKReader.
 Use ZKReader for device I/O; module-level command builders only return Request
 values and never open a port or transmit bytes. Import has no device side effects.
 """
@@ -17,7 +17,6 @@ values and never open a port or transmit bytes. Import has no device side effect
 from __future__ import annotations
 
 import asyncio
-import inspect
 import logging
 import math
 import time
@@ -182,6 +181,25 @@ class InventoryMode(str, Enum):
     REAL_TIME = "real_time"
 
 
+class ScenarioSession(IntEnum):
+    """CFG9 selectors: Gen2 sessions S0-S3 and ZK firmware inventory modes.
+
+    Use with InventoryConfig.session or QueryParameters.session for Scenario.
+    Extended values do not identify an on-air Gen2 session. Firmware support
+    and scheduling vary; S_CST uses the three profile slots in CFG31.
+    """
+
+    S0 = 0
+    S1 = 1
+    S2 = 2
+    S3 = 3
+    S_CST = 128
+    S_CTP = 252
+    S_RPT = 253
+    S_PRO = 254
+    AUTO = 255
+
+
 class InventoryData(str, Enum):
     EPC = "epc"
     TID = "tid"
@@ -295,6 +313,14 @@ class ReaderInfo:
 
 @dataclass(frozen=True)
 class InventoryConfig:
+    """Inventory options; applicable fields depend on InventoryMode.
+
+    Scenario takes Q, session selector, phase, TID and mask from this object,
+    temporarily overriding CFG9/10/11. It uses the reader's existing CFG31.
+    Use ScenarioSession names or integers for its session selector. Target is
+    0 (A) or 1 (B); scan_time_100ms controls Answer rounds, not Scenario duration.
+    """
+
     data: InventoryData = InventoryData.EPC
     q: int = 4
     session: int = 0
@@ -371,6 +397,8 @@ class InventoryOutcome:
     diagnostics: tuple[str, ...] = ()
     received_count: int = 0
     dropped_count: int = 0
+    quarantined_count: int = 0
+    quarantined_frames: tuple[ResponseFrame, ...] = ()
 
     @property
     def unique_count(self) -> int:
@@ -379,9 +407,38 @@ class InventoryOutcome:
 
 @dataclass(frozen=True)
 class Region:
+    """Native ZK band ID and inclusive, zero-based channel limits.
+
+    For a linear band, frequency_khz = base_khz + channel * spacing_khz.
+    Equal limits select one channel. This does not configure a custom region.
+    """
+
     band: int
     min_channel: int
     max_channel: int
+
+
+@dataclass(frozen=True)
+class CustomRegion:
+    """Custom channel centers in kHz; radio and regulatory limits remain device-specific."""
+
+    start_frequency_khz: int
+    channel_count: int
+    spacing_khz: int
+
+    def __post_init__(self):
+        integer(self.start_frequency_khz, 1, 0xFFFFFF, "start_frequency_khz")
+        integer(self.channel_count, 1, 61, "channel_count")
+        integer(self.spacing_khz, 0, 255 * 125, "spacing_khz")
+        if self.spacing_khz % 125 or (self.channel_count > 1 and not self.spacing_khz):
+            raise ValidationError(
+                "spacing_khz must be a multiple of 125, positive for multiple channels"
+            )
+        integer(self.last_frequency_khz, 1, 0xFFFFFF, "last_frequency_khz")
+
+    @property
+    def last_frequency_khz(self) -> int:
+        return self.start_frequency_khz + (self.channel_count - 1) * self.spacing_khz
 
 
 @dataclass(frozen=True)
@@ -424,6 +481,12 @@ class WritePower:
 
 @dataclass(frozen=True)
 class QueryParameters:
+    """Scenario CFG9: Q (0-15), session/mode selector, and phase reporting.
+
+    session accepts ScenarioSession or its integer value. start_inventory()
+    temporarily replaces these settings with its InventoryConfig values.
+    """
+
     q: int
     session: int
     phase: bool = False
@@ -610,12 +673,19 @@ class TraceEmitter:
 
 # Native Ex10 RF profiles transcribed from V2.25 pp.85-86.
 #
-# These are documented physical parameters, not RF equivalence with NATION.
+# These are documented physical parameters, not measured RF performance.
 # No profile is selected automatically and availability is firmware-dependent.
 
 
 @dataclass(frozen=True)
 class RFProfile:
+    """Known RF parameters for a native profile ID; availability is firmware-specific.
+
+    modulation, pie and tari_us describe the reader-to-tag link; blf_khz and
+    encoding describe the tag reply. Metadata alone does not establish RF
+    performance or support on the attached reader.
+    """
+
     id: int
     modulation: str
     pie: float
@@ -967,7 +1037,7 @@ class AsyncTransport(Protocol):
 
 
 class SerialTransport:
-    def __init__(self, port: str, baudrate=57600, *, read_timeout=0.05, write_timeout=1.0):
+    def __init__(self, port: str, baudrate=115200, *, read_timeout=0.05, write_timeout=1.0):
         if not isinstance(port, str) or not port:
             raise ValueError("Explicit serial port is required")
         self.port = port
@@ -1170,8 +1240,9 @@ def set_interface(interface: str) -> Request[None]:
     return Request(0x6A, bytes((0 if interface == "usb" else 1,)), ack, True)
 
 
-def set_working_mode(mode: WorkingMode) -> Request[None]:
-    return Request(0x76, bytes((integer(mode, 0, 2, "mode"),)), ack, True)
+def set_working_mode(mode: WorkingMode, *, persist: bool = False) -> Request[None]:
+    value = integer(mode, 0, 2, "mode") | (0 if boolean(persist, "persist") else 0x80)
+    return Request(0x76, bytes((value,)), ack, True)
 
 
 def encode_real_time(config: RealTimeConfig) -> bytes:
@@ -1206,7 +1277,9 @@ def decode_working_mode(data: bytes) -> WorkingModeConfig:
         raise ProtocolError("Unsupported working mode/protocol/query response")
     bits = data[9]
     mask_data = data[10 : 10 + (bits + 7) // 8]
-    if any(data[10 + (bits + 7) // 8 : 42]):
+    # With masking disabled, firmware may retain old bytes in the fixed buffer.
+    # V6.8 GetReadParameter displays only ceil(MaskLen / 8) bytes, including zero.
+    if bits and any(data[10 + (bits + 7) // 8 : 42]):
         raise ProtocolError("Nonzero unused real-time mask bytes")
     try:
         mask = TagMask(data[6], int.from_bytes(data[7:9], "big"), bits, mask_data) if bits else None
@@ -1339,7 +1412,10 @@ def decode_antenna(raw: int, *, ports: int, mask_encoding=False) -> dict:
 # Native frequency tables and profile IDs. No cross-vendor numeric mapping.
 
 
-# Band -> base kHz, spacing kHz, max index, per V2.25 pp.61-62.
+# Native band ID -> (base_khz, spacing_khz, max_channel_index), V2.25 pp.61-62.
+# Channel indices are zero-based and inclusive; frequency = base + index * spacing.
+# Example: band 2, channels 0..49 -> 902750..927250 kHz; equal limits select one.
+# These are reader protocol tables, not deployment authorization or custom regions.
 REGIONS = {
     0: (840000, 2000, 60),
     1: (920125, 250, 19),
@@ -1382,6 +1458,7 @@ def validate_region(region: Region) -> Region:
 
 
 def channel_frequency_khz(band: int, channel: int) -> int:
+    """Convert a native channel index to kHz; reject ambiguous bands 21 and 29."""
     validate_region(Region(band, channel, channel))
     if band not in REGIONS:
         raise UnverifiedFeature("Discontinuous region formula requires firmware confirmation")
@@ -1407,16 +1484,37 @@ def set_region(region: Region, *, persist=False, legacy=False) -> Request[None]:
     return Request(0x22, data, ack, True)
 
 
-def decode_region(data: bytes) -> Region:
-    exact(data, 3)
+def decode_region(data: bytes) -> Region | CustomRegion:
     try:
+        if data[:1] == b"\xff":
+            exact(data, 6)
+            return CustomRegion(int.from_bytes(data[3:6], "big"), data[2], data[1] * 125)
+        exact(data, 3)
+        # Wire order is band/max/min; the Python model uses band/min/max.
         return validate_region(Region(data[0], data[2], data[1]))
     except ValidationError as error:
         raise ProtocolError(str(error)) from error
 
 
-def get_region() -> Request[Region]:
+def get_region() -> Request[Region | CustomRegion]:
     return Request(0x9E, decode=decode_region)
+
+
+def set_custom_region(region: CustomRegion, *, persist=False) -> Request[None]:
+    if not isinstance(region, CustomRegion):
+        raise ValidationError("region must be a CustomRegion")
+    boolean(persist, "persist")
+    data = bytes((0 if persist else 1, 255, region.spacing_khz // 125, region.channel_count))
+    return Request(0x22, data + region.start_frequency_khz.to_bytes(3, "big"), ack, True)
+
+
+def decode_custom_region(data: bytes) -> CustomRegion | None:
+    region = decode_region(data)
+    return region if isinstance(region, CustomRegion) else None
+
+
+def get_custom_region() -> Request[CustomRegion | None]:
+    return Request(0x9E, decode=decode_custom_region)
 
 
 def profile(profile_id: int | None = None, *, persist=False, extended=True) -> Request[int]:
@@ -1441,9 +1539,11 @@ def drm(enabled: bool | None = None) -> Request[bool]:
 # Commands: Ex10 configuration
 # ==============================================================================
 
-# Typed Ex10 CFG7/8/9/10/11/25/29/31; conflicting lengths are explicit.
+# Ex10 configuration; CFG16 follows the V6.8 demo and reader traces.
 
 
+# Keep the integer contract; ScenarioSession supplies optional readable names.
+# Values above 3 select firmware modes, not additional Gen2 sessions.
 SCENARIO_SESSIONS = (0, 1, 2, 3, 128, 252, 253, 254, 255)
 
 
@@ -1473,14 +1573,21 @@ def encode_tid(value: TIDParameters) -> bytes:
 
 
 def encode_profiles(profiles: tuple[int, int, int]) -> bytes:
+    """Encode CFG31 slots in order, as three big-endian uint16 IDs; repeats are valid."""
     if len(profiles) != 3:
         raise ValidationError("CFG31 requires exactly three native profile IDs")
     return b"".join(integer(v, 0, 65535, "profile_id").to_bytes(2, "big") for v in profiles)
 
 
-def decode_mask(data: bytes) -> TagMask:
+def decode_mask(data: bytes) -> TagMask | None:
+    """Decode CFG11; a zero bit length disables selection and returns None."""
     if len(data) < 4:
         raise ProtocolError("Truncated CFG11 mask")
+    if data[3] == 0:
+        # Linux manual 4.2.5: zero length disables masking. Inactive bank/address
+        # fields are not a selection; some firmware returns an all-zero header.
+        exact(data, 4)
+        return None
     try:
         return TagMask(data[0], int.from_bytes(data[1:3], "big"), data[3], data[4:])
     except ValidationError as error:
@@ -1505,6 +1612,9 @@ def decode_config(number: int, data: bytes):
             encode_tid(value)
         elif number == 11:
             value = decode_mask(data)
+        elif number == 16:
+            # Demo layout: three zero bytes followed by a native 0..100 value.
+            value = integer(int.from_bytes(exact(data, 4), "big"), 0, 100, "range_control")
         elif number == 31:
             exact(data, 6)
             value = tuple(int.from_bytes(data[p : p + 2], "big") for p in (0, 2, 4))
@@ -1517,8 +1627,8 @@ def decode_config(number: int, data: bytes):
 
 def get_config(number: int, *, decoded=True) -> Request:
     integer(number, 0, 255, "CFG number")
-    if number not in (7, 8, 9, 10, 11, 25, 29, 31):
-        raise ValidationError("CFG number outside documented scope")
+    if number not in (7, 8, 9, 10, 11, 16, 25, 29, 31):
+        raise ValidationError("CFG number outside supported scope")
     return Request(0xEB, bytes((number,)), (lambda d: decode_config(number, d)) if decoded else raw)
 
 
@@ -1543,7 +1653,14 @@ def set_config(number: int, data: bytes, *, persist=False, confirmed_length=None
         elif data[0] > 1 or data[1] > 3 or (data[0] and data[1] == 0):
             raise ValidationError("Invalid Impinj ScanID fields")
     else:
-        decode_config(number, data)
+        value = decode_config(number, data)
+        if number == 11 and value is None:
+            # Disabled response headers may contain unused values; outgoing
+            # commands still require the documented bank and address ranges.
+            try:
+                TagMask(data[0], int.from_bytes(data[1:3], "big"), 0, b"")
+            except ValidationError as error:
+                raise ProtocolError(str(error)) from error
     return Request(0xEA, bytes((0 if persist else 1, number)) + data, ack, True)
 
 
@@ -2192,6 +2309,7 @@ class Dispatcher:
         self.last_exchange_error: ExchangeError | None = None
         self.trace = TraceEmitter(on_event)
         self._exchange_sequence = 0
+        self.last_rx_at = 0.0
 
     @property
     def pending_command(self) -> int | None:
@@ -2406,6 +2524,7 @@ class Dispatcher:
                     raise TransportError("Transport.read must return bytes")
                 if not chunk:
                     raise TransportError("Transport EOF")
+                self.last_rx_at = asyncio.get_running_loop().time()
                 self.trace.emit("rx", raw=chunk, detail="transport read chunk")
                 discarded_before = self.parser.diagnostics.discarded_bytes
                 parsed = self.parser.feed(chunk)
@@ -2591,6 +2710,7 @@ async def collect_answer(reader, config, *, timeout, request=None, managed=False
         return True
 
     async with reader._operation(deadline):
+        await reader._ensure_answer_mode(internal=managed)
         reader._guard(request.command, internal=managed)
         reader.state = ReaderState.INVENTORYING
         reader._answer_done = done
@@ -2703,16 +2823,43 @@ async def collect_buffer(reader, data_kind, timeout):
     return _outcome(reports, status, None, messages, unknown=unknown, partial=bool(lost))
 
 
+async def _await_cleanup(task):
+    """Finish cleanup even if its caller is cancelled; then propagate cancellation."""
+    cancelled = False
+    while True:
+        try:
+            result = await asyncio.shield(task)
+            break
+        except asyncio.CancelledError:
+            if task.cancelled():
+                raise
+            cancelled = True
+    if cancelled:
+        raise asyncio.CancelledError
+    return result
+
+
 class InventorySession:
     """Async iterator of TagReport or Heartbeat with explicit stop and final outcome.
 
-    Scenario applies volatile CFG9/10/11 and one antenna, verifies them, and
-    restores snapshots after a confirmed stop. Real-time uses the already saved
-    0x75 configuration; 0x76 start/stop changes persistent working mode.
+    Scenario applies volatile CFG9/10/11 and an antenna mask, verifies them,
+    and restores snapshots after a confirmed stop. CFG31 is not managed or restored.
+    Real-time uses the saved 0x75 configuration; start/stop changes only the
+    current working mode. Call drain() after stop() to collect queued events.
     Stream outcome stores counters; the consumer owns delivered report storage.
     """
 
-    def __init__(self, reader, mode, config, *, queue_size=1024, trigger=False):
+    def __init__(
+        self,
+        reader,
+        mode,
+        config,
+        *,
+        queue_size=1024,
+        trigger=False,
+        antenna_mask=None,
+        antenna_sequence=None,
+    ):
         if not isinstance(mode, InventoryMode):
             raise ValidationError("mode must be InventoryMode")
         integer(queue_size, 1, 1000000, "queue_size")
@@ -2720,6 +2867,21 @@ class InventorySession:
             replace(config, session=0) if mode is InventoryMode.SCENARIO else config,
             reader.capabilities.antenna_ports,
         )
+        if antenna_mask is not None:
+            if mode is not InventoryMode.SCENARIO:
+                raise UnsupportedFeature("antenna_mask is only supported by Scenario inventory")
+            integer(antenna_mask, 1, (1 << reader.capabilities.antenna_ports) - 1, "antenna_mask")
+        if antenna_sequence is not None:
+            if mode is not InventoryMode.ANSWER:
+                raise UnsupportedFeature("antenna_sequence is only supported by Answer inventory")
+            if not isinstance(antenna_sequence, (tuple, list)) or not antenna_sequence:
+                raise ValidationError("antenna_sequence must be a nonempty port sequence")
+            for port in antenna_sequence:
+                integer(port, 1, reader.capabilities.antenna_ports, "antenna_sequence port")
+            if len(set(antenna_sequence)) != len(antenna_sequence):
+                raise ValidationError("antenna_sequence ports must be unique")
+            if len(antenna_sequence) > 1 and config.scan_time_100ms == 0:
+                raise ValidationError("Multiple Answer antennas require bounded rounds")
         if mode is not InventoryMode.ANSWER and config.data not in (
             InventoryData.EPC,
             InventoryData.TID,
@@ -2739,11 +2901,15 @@ class InventorySession:
             if config.phase or config.statistics or config.special_strategy:
                 raise UnsupportedFeature("Real-time 0xEE has no verified phase/statistics flags")
         self.reader, self.mode, self.config = reader, mode, config
+        self.antenna_mask = antenna_mask if antenna_mask is not None else 1 << (config.antenna - 1)
+        self.antenna_sequence = tuple(antenna_sequence or (config.antenna,))
         self.trigger = trigger
         self.queue = asyncio.Queue(maxsize=queue_size)
         self._finished = asyncio.Event()
+        self._available = asyncio.Event()
         self._stopping = asyncio.Event()
         self._stop_lock = asyncio.Lock()
+        self._stop_task = None
         self._task = None
         self._error = None
         self._snapshots = []
@@ -2756,11 +2922,20 @@ class InventorySession:
         self._heartbeats = 0
         self._messages = []
         self._start_discarded = 0
+        self._draining_stop = False
+        self._quarantined_count = 0
+        self._quarantined_frames = []
         self.outcome: InventoryOutcome | None = None
 
     async def start(self):
         reader = self.reader
         async with reader._operation():
+            # Read before owning notifications: a reader may already be streaming
+            # with a different EPC/TID layout when this connection is opened.
+            reader._guard(0x77)
+            current = (await reader._read_working_mode()).require_success()
+            if self.mode is not InventoryMode.REAL_TIME:
+                await reader._ensure_answer_mode()
             reader._guard(
                 0x50
                 if self.mode is InventoryMode.SCENARIO
@@ -2784,10 +2959,6 @@ class InventorySession:
                     await self._prepare_scenario()
                     request = fast_start(self.config.target)
                 else:
-                    current = (
-                        await reader._execute(get_working_mode(), internal=True, locked=True)
-                    ).require_success()
-                    reader._working_mode = current.mode
                     self._tid_words = current.config.tid_word_count
                     expected = InventoryData.TID if self._tid_words else InventoryData.EPC
                     if self.config.data is not expected:
@@ -2816,7 +2987,7 @@ class InventorySession:
                     self._started = False
                     if reader.dispatcher.fault is None:
                         await self._restore()
-                self._finished.set()
+                self._finish()
                 reader._session = None
                 reader.state = (
                     ReaderState.UNKNOWN
@@ -2865,15 +3036,20 @@ class InventorySession:
             ).require_success()
             if checked != data:
                 raise ProtocolError(f"CFG{number} read-back mismatch before start")
-        if old_ant is not None and old_ant != 1 << (cfg.antenna - 1):
+        if old_ant is not None and old_ant != self.antenna_mask:
             self._snapshots.append(set_antennas(old_ant, ports=ports))
             (
                 await reader._execute(
-                    set_antennas(1 << (cfg.antenna - 1), ports=ports),
+                    set_antennas(self.antenna_mask, ports=ports),
                     internal=True,
                     locked=True,
                 )
             ).require_success()
+            actual = (
+                await reader._execute(get_reader_info(), internal=True, locked=True)
+            ).require_success()
+            if actual.antenna_raw != self.antenna_mask:
+                raise ProtocolError("Antenna selection read-back mismatch before start")
 
     async def _restore(self):
         reader = self.reader
@@ -2921,11 +3097,19 @@ class InventorySession:
                 pending
                 and pending.command in (0x51, 0x76)
                 and pending.future.done()
+                and pending.frames
+                and pending.frames[-1].status == 0
                 and self._stopping.is_set()
             )
             if self._stop_ack or ack_in_same_chunk:
-                # Do not attribute late frames to the next inventory generation.
+                if self._draining_stop and not self._closed:
+                    self._quarantined_count += 1
+                    self._quarantined_frames.append(frame)
+                    del self._quarantined_frames[:-32]
+                    return
                 raise ProtocolError("Tag/heartbeat after stop ACK; stream boundary is unverified")
+            if self._closed:
+                raise ProtocolError("Report after an unconfirmed Stop; reader may still be running")
             if frame.status == 0x28:
                 value = decode_heartbeat(frame.data, ports=self.reader.capabilities.antenna_ports)
                 self._heartbeats += 1
@@ -2949,6 +3133,7 @@ class InventorySession:
     def _enqueue(self, value):
         try:
             self.queue.put_nowait(value)
+            self._available.set()
         except asyncio.QueueFull:
             self._dropped += 1
             self._fault(
@@ -2959,7 +3144,14 @@ class InventorySession:
 
     def _fault(self, error):
         self._error = self._error or error
+        self._finish()
+
+    def _finish(self):
         self._finished.set()
+        self._available.set()
+
+    async def _settle_after_stop(self):
+        await self.reader._settle_stream()
 
     async def _answer_loop(self):
         def receive(report):
@@ -2967,10 +3159,12 @@ class InventorySession:
             self._enqueue(report)
 
         try:
+            index = 0
             while not self._stopping.is_set() and not self._error:
+                config = replace(self.config, antenna=self.antenna_sequence[index])
                 result = await collect_answer(
                     self.reader,
-                    self.config,
+                    config,
                     timeout=self.reader._timeout(scan_time_100ms=self.config.scan_time_100ms),
                     managed=True,
                     on_report=receive,
@@ -2979,13 +3173,76 @@ class InventorySession:
                     self._messages.extend(result.diagnostics or (result.termination_reason,))
                 if self.reader.dispatcher.fault:
                     break
+                # A terminal device error ends the whole sequence. In particular,
+                # do not silently retry a disconnected antenna on every rotation.
+                # Reports received before the error remain in the consumer queue.
+                if result.termination_reason == "device_error" and result.status is not None:
+                    raise DeviceError(0x01, result.status)
+                index = (index + 1) % len(self.antenna_sequence)
                 await asyncio.sleep(0)  # Yield even for immediate fake/in-memory responses.
         except Exception as error:
             self._fault(error)
         finally:
-            self._finished.set()
+            self._finish()
 
     async def stop(self) -> InventoryOutcome:
+        """Stop, settle trailing frames, and restore managed settings.
+
+        Cancellation waits for cleanup before propagating. Drain queued events
+        separately; inspect complete/diagnostics before treating the run as successful.
+        """
+        if self._stop_task is None:
+            self._stop_task = asyncio.create_task(self._stop(), name="zk-inventory-stop")
+        return await _await_cleanup(self._stop_task)
+
+    async def _stop_device(self):
+        reader = self.reader
+        if self.mode is InventoryMode.ANSWER:
+            try:
+                if reader.dispatcher.pending_command == 0x01 and not reader.dispatcher.fault:
+                    await reader.dispatcher.interrupt_answer()
+            finally:
+                if self._task:
+                    await self._task  # Join the round even if writing 0x93 failed.
+            self._stop_ack = not bool(reader.dispatcher.fault)
+        else:
+            # Reserve two bounded settling windows in addition to the
+            # normal operation budget (Real-time also reads its mode back).
+            stop_deadline = asyncio.get_running_loop().time() + reader.timeout + 1.0
+            async with reader._operation(stop_deadline):
+                if not reader.dispatcher.fault and self._started:
+                    self._draining_stop = True
+                    request = (
+                        fast_stop()
+                        if self.mode is InventoryMode.SCENARIO
+                        else set_working_mode(WorkingMode.ANSWER)
+                    )
+                    result = await reader._execute(request, internal=True, locked=True)
+                    if result.ok and not reader.dispatcher.fault:
+                        self._stop_ack = True
+                        if self.mode is InventoryMode.REAL_TIME:
+                            reader._working_mode = WorkingMode.ANSWER
+                        try:
+                            await self._settle_after_stop()
+                            if self.mode is InventoryMode.REAL_TIME:
+                                current = (
+                                    await reader._read_working_mode(internal=True)
+                                ).require_success()
+                                if current.mode is not WorkingMode.ANSWER:
+                                    raise ProtocolError(
+                                        "Working mode read-back after Stop is not Answer"
+                                    )
+                            await self._settle_after_stop()
+                            self._draining_stop = False
+                            await self._restore()
+                        except Exception as error:
+                            self._fault(error)
+                            reader.dispatcher._fail(error)
+                    else:
+                        self._fault(OperationError(result))
+                    self._draining_stop = False
+
+    async def _stop(self) -> InventoryOutcome:
         async with self._stop_lock:
             if self._closed:
                 return self.outcome
@@ -2994,28 +3251,18 @@ class InventorySession:
             reader.state = (
                 ReaderState.STOPPING if not reader.dispatcher.fault else ReaderState.UNKNOWN
             )
-            if self.mode is InventoryMode.ANSWER:
-                if reader.dispatcher.pending_command == 0x01 and not reader.dispatcher.fault:
-                    await reader.dispatcher.interrupt_answer()
-                if self._task:
-                    await self._task  # Mix has no 0x93; its bounded round must finish.
-                self._stop_ack = not bool(reader.dispatcher.fault)
-            else:
-                async with reader._operation():
-                    if not reader.dispatcher.fault and self._started:
-                        request = (
-                            fast_stop()
-                            if self.mode is InventoryMode.SCENARIO
-                            else set_working_mode(WorkingMode.ANSWER)
-                        )
-                        result = await reader._execute(request, internal=True, locked=True)
-                        if result.ok and not reader.dispatcher.fault:
-                            self._stop_ack = True
-                            if self.mode is InventoryMode.REAL_TIME:
-                                reader._working_mode = WorkingMode.ANSWER
-                            await self._restore()
-                        else:
-                            self._fault(OperationError(result))
+            try:
+                await self._stop_device()
+            except Exception as error:
+                self._fault(error)
+                reader.dispatcher._fail(error)
+            finally:
+                self._draining_stop = False
+            if self._quarantined_count:
+                self._messages.append(
+                    f"Quarantined {self._quarantined_count} report/heartbeat frames after Stop ACK; "
+                    "retained the last 32 raw frames"
+                )
             lost = reader.dispatcher.parser.diagnostics.discarded_bytes - self._start_discarded
             if lost:
                 self._messages.append(f"Parser discarded {lost} bytes")
@@ -3031,12 +3278,15 @@ class InventorySession:
                 if partial
                 else Outcome.SUCCESS,
                 complete=not uncertain and not partial,
+                status=self._error.status if isinstance(self._error, DeviceError) else None,
                 diagnostics=tuple(self._messages),
                 received_count=self._received,
                 dropped_count=self._dropped,
+                quarantined_count=self._quarantined_count,
+                quarantined_frames=tuple(self._quarantined_frames),
             )
             self._closed = True
-            self._finished.set()
+            self._finish()
             reader._session = None
             reader.state = ReaderState.UNKNOWN if uncertain else ReaderState.IDLE
             # Retain the callback after stop to detect illegal late 0xEE frames.
@@ -3045,27 +3295,31 @@ class InventorySession:
     def __aiter__(self):
         return self
 
+    def drain(self) -> tuple[TagReport | Heartbeat, ...]:
+        """Take queued events after stop(), even when its outcome is incomplete.
+
+        Use one consumer. This does not read the port or clear Stop diagnostics.
+        Quarantined post-ACK frames are retained in outcome, never in this queue.
+        """
+        if not self._closed:
+            raise StateError("Stop the session before draining queued events")
+        events = []
+        while not self.queue.empty():
+            events.append(self.queue.get_nowait())
+        return tuple(events)
+
     async def __anext__(self):
-        if not self.queue.empty():
-            return self.queue.get_nowait()
-        if self._finished.is_set():
-            if self._error:
-                raise self._error
-            raise StopAsyncIteration
-        get_task = asyncio.create_task(self.queue.get())
-        end_task = asyncio.create_task(self._finished.wait())
-        try:
-            done, _ = await asyncio.wait((get_task, end_task), return_when=asyncio.FIRST_COMPLETED)
-            if get_task in done:
-                return get_task.result()
-            if self._error:
-                raise self._error
-            raise StopAsyncIteration
-        finally:
-            for task in (get_task, end_task):
-                if not task.done():
-                    task.cancel()
-            await asyncio.gather(get_task, end_task, return_exceptions=True)
+        while True:
+            if not self.queue.empty():
+                return self.queue.get_nowait()
+            if self._finished.is_set():
+                if self._error:
+                    raise self._error
+                raise StopAsyncIteration
+            self._available.clear()
+            # No background queue.get(): cancelling a timed consumer cannot
+            # remove a report before it is returned to application code.
+            await self._available.wait()
 
     async def __aenter__(self):
         return self
@@ -3097,6 +3351,7 @@ class ZKReader:
         self.timeout = timeout
         self.state = ReaderState.DISCONNECTED
         self._operation_lock = asyncio.Lock()
+        self._lifecycle_lock = asyncio.Lock()
         self._active_deadline = None
         self._session = None
         self.last_result: CommandResult | None = None
@@ -3169,6 +3424,10 @@ class ZKReader:
     async def open(self, *, recover: bool = False) -> "ZKReader":
         """Open transport and start the single RX task; recover requires a known clean boundary."""
         already_open = self.dispatcher.opened
+        if not already_open:
+            # A new connection has no session owner, including an autonomous
+            # reader that resumed streaming while the port was closed.
+            self.dispatcher.on_notification = None
         await self.dispatcher.open(recover=recover)
         if not already_open:
             self.state = ReaderState.IDLE
@@ -3177,12 +3436,16 @@ class ZKReader:
 
     async def close(self) -> None:
         """Stop owned inventory, close transport and join background tasks."""
+        async with self._lifecycle_lock:
+            await self._close()
+
+    async def _close(self):
         session = self._session
         try:
             if self._session is not None and self.dispatcher.fault is None:
                 await self._session.stop()
             elif self.dispatcher.pending_command == 0x01 and self.dispatcher.fault is None:
-                await self.stop_inventory()
+                await self._stop_inventory_locked()
         finally:
             if self._session is not None:
                 self._session._fault(StateError("Reader closed"))
@@ -3229,6 +3492,8 @@ class ZKReader:
                     request, deadline=deadline, internal=internal, locked=True
                 )
         self._guard(request.command, internal)
+        if request.command == 0x18:
+            await self._ensure_answer_mode(internal=internal)
         deadline = self._active_deadline if deadline is None else deadline
         try:
             frames = await self.dispatcher.exchange(
@@ -3382,15 +3647,42 @@ class ZKReader:
         """Select usb or uart (0x6A); effective after a module power cycle."""
         return await self._execute(set_interface(interface))
 
-    async def get_region(self) -> CommandResult[Region]:
-        """Read the native band ID and minimum/maximum channel indices (0x9E)."""
+    async def get_region(self) -> CommandResult[Region | CustomRegion]:
+        """Read the active native region or CustomRegion (0x9E)."""
         return await self._execute(get_region())
 
     async def set_region(
         self, region: Region, *, persist: bool = False, legacy: bool = False
     ) -> CommandResult[None]:
-        """Set native region and channel indices; no NATION region-ID conversion (0x22)."""
+        """Set a native band and inclusive channel limits (0x22).
+
+        Equal limits select one channel. Use set_custom_region() for start/count/spacing.
+        persist=False uses the volatile extended format;
+        legacy=True requires persist=True and a band ID at most 15.
+        """
         return await self._execute(set_region(region, persist=persist, legacy=legacy))
+
+    async def get_custom_region(self) -> CommandResult[CustomRegion | None]:
+        """Read active custom channels, or None when a native region is active (0x9E)."""
+        return await self._execute(get_custom_region())
+
+    async def set_custom_region(
+        self,
+        start_frequency_khz: int,
+        channel_count: int,
+        spacing_khz: int,
+        *,
+        persist: bool = False,
+    ) -> CommandResult[None]:
+        """Set custom channel centers (0x22, band 0xFF); volatile by default.
+
+        Count is 1..61; spacing_khz is in kHz, in multiples of 125, up to 31875
+        (zero only for one channel). Demo Space=4 means spacing_khz=500.
+        Frequencies must fit 24-bit kHz. These are encoding
+        limits, not supported RF bands or operating permissions. Read back to verify.
+        """
+        region = CustomRegion(start_frequency_khz, channel_count, spacing_khz)
+        return await self._execute(set_custom_region(region, persist=persist))
 
     async def get_profile(self, *, extended_format: bool = True) -> CommandResult[int]:
         """Read native RF profile ID, including the 16-bit Ex10 format (0x7F)."""
@@ -3399,7 +3691,11 @@ class ZKReader:
     async def set_profile(
         self, profile_id: int, *, persist: bool = False, extended_format: bool = True
     ) -> CommandResult[int]:
-        """Set native RF profile ID; no inferred equivalence with NATION profiles (0x7F)."""
+        """Select one native RF profile (0x7F); this does not configure S-CST slots.
+
+        Use PROFILES for known parameters, not firmware support detection.
+        Extended format accepts 16-bit IDs; legacy format accepts IDs 0-63.
+        """
         return await self._execute(profile(profile_id, persist=persist, extended=extended_format))
 
     async def get_drm(self) -> CommandResult[bool]:
@@ -3452,7 +3748,15 @@ class ZKReader:
     async def get_config(
         self, number: int, *, decoded: bool = True
     ) -> CommandResult[
-        ScanParameters | QueryParameters | TIDParameters | TagMask | tuple[int, ...] | bool | bytes
+        ScanParameters
+        | QueryParameters
+        | TIDParameters
+        | TagMask
+        | tuple[int, ...]
+        | int
+        | bool
+        | bytes
+        | None
     ]:
         """Read an Ex10 CFG value; decoded=False preserves the exact native bytes (0xEB)."""
         self.capabilities.require("ex10")
@@ -3492,14 +3796,31 @@ class ZKReader:
         """Enable or disable TagFocus for compatible tags (CFG8)."""
         return await self.set_config(8, bytes((boolean(enabled, "enabled"),)), persist=persist)
 
+    async def get_range_control(self) -> CommandResult[int]:
+        """Read the native Range Control value, 0..100 (CFG16); no distance/dB conversion."""
+        return await self.get_config(16)
+
+    async def set_range_control(self, value: int, *, persist: bool = False) -> CommandResult[None]:
+        """Set native Range Control to 0..100 (CFG16); volatile unless persist=True.
+
+        No conversion to distance, dB or percentage is established.
+        InventorySession does not configure or restore this setting.
+        """
+        data = integer(value, 0, 100, "range_control").to_bytes(4, "big")
+        return await self.set_config(16, data, persist=persist)
+
     async def get_query_parameters(self) -> CommandResult[QueryParameters]:
-        """Read Q, session, and phase settings for Scenario inventory (CFG9)."""
+        """Read Scenario Q, session/mode selector, and phase reporting (CFG9)."""
         return await self.get_config(9)
 
     async def set_query_parameters(
         self, parameters: QueryParameters, *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set Q, session, and phase for Scenario inventory (CFG9)."""
+        """Set Scenario Q, session/mode selector, and phase reporting (CFG9).
+
+        start_inventory() overrides CFG9 with its InventoryConfig for the duration
+        of the session. Set config.session there to select S-CST for that run.
+        """
         return await self.set_config(9, encode_query(parameters), persist=persist)
 
     async def get_tid_parameters(self) -> CommandResult[TIDParameters]:
@@ -3512,8 +3833,8 @@ class ZKReader:
         """Set Scenario TID selection; word_count=0 selects EPC instead (CFG10)."""
         return await self.set_config(10, encode_tid(parameters), persist=persist)
 
-    async def get_inventory_mask(self) -> CommandResult[TagMask]:
-        """Read the bank, bit address, length, and data of the inventory mask (CFG11)."""
+    async def get_inventory_mask(self) -> CommandResult[TagMask | None]:
+        """Read CFG11 as TagMask, or None when disabled; raw_data retains the wire payload."""
         return await self.get_config(11)
 
     async def set_inventory_mask(
@@ -3524,13 +3845,19 @@ class ZKReader:
         return await self.set_config(11, data, persist=persist)
 
     async def get_custom_profiles(self) -> CommandResult[tuple[int, ...]]:
-        """Read the three custom RF profile IDs (CFG31)."""
+        """Read the three ordered S-CST RF profile slots (CFG31)."""
         return await self.get_config(31)
 
     async def set_custom_profiles(
         self, profile_ids: tuple[int, int, int], *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set three native 16-bit RF profile IDs (CFG31)."""
+        """Set three ordered S-CST profile IDs (CFG31); repeated IDs are allowed.
+
+        This does not activate S-CST. Start Scenario with config.session set to
+        ScenarioSession.S_CST. InventorySession does not snapshot or restore CFG31;
+        persist=False avoids saving to nonvolatile storage, not session cleanup.
+        Firmware controls profile switching; its timing is not specified here.
+        """
         return await self.set_config(31, encode_profiles(profile_ids), persist=persist)
 
     async def set_real_time_config(self, config: RealTimeConfig) -> CommandResult[None]:
@@ -3539,19 +3866,113 @@ class ZKReader:
         return await self._execute(set_real_time(config))
 
     async def get_working_mode(self) -> CommandResult[WorkingModeConfig]:
-        """Read the 0x77 mode and fixed-width saved real-time configuration."""
-        result = await self._execute(get_working_mode())
+        """Read the current mode and real-time configuration (0x77), not the boot mode."""
+        async with self._operation():
+            return await self._read_working_mode()
+
+    async def _read_working_mode(self, *, internal=False):
+        result = await self._execute(get_working_mode(), internal=internal, locked=True)
         if result.ok:
             self._working_mode = result.data.mode
+        else:
+            self._working_mode = None
         return result
 
-    async def set_working_mode(self, mode: WorkingMode) -> CommandResult[None]:
-        """Persistent mode setting. For managed 0xEE delivery use start_inventory()."""
-        request = set_working_mode(mode)
-        async with self._operation():
-            result = await self._execute(request, locked=True)
-            if result.ok:
-                self._working_mode = WorkingMode(mode)
+    async def _ensure_answer_mode(self, *, internal=False):
+        self._guard(0x77, internal=internal)
+        if self._working_mode is None:
+            (await self._read_working_mode(internal=internal)).require_success()
+        if self._working_mode is not WorkingMode.ANSWER:
+            raise StateError(
+                "Answer/Scenario requires Answer working mode; explicitly call "
+                "set_working_mode(WorkingMode.ANSWER, persist=False) first"
+            )
+
+    async def _settle_stream(self):
+        # An observed serial boundary, not a firmware timing guarantee. Count
+        # every RX byte so a fragmented frame cannot cross the boundary.
+        loop = asyncio.get_running_loop()
+        end = loop.time() + 0.5
+        while not self.dispatcher.fault:
+            now = loop.time()
+            idle = now - self.dispatcher.last_rx_at
+            if idle >= 0.05:
+                if self.dispatcher.parser.buffer:
+                    raise ProtocolError("Incomplete frame after Stop ACK")
+                return
+            if now >= end:
+                raise ProtocolError("Reader did not become quiet after Stop ACK")
+            await asyncio.sleep(min(0.05 - idle, end - now))
+        raise ProtocolError("Connection fault while settling Stop")
+
+    async def set_working_mode(
+        self, mode: WorkingMode, *, persist: bool = False
+    ) -> CommandResult[None]:
+        """Set the current mode; persist=True also changes the mode used at boot.
+
+        For managed 0xEE delivery use start_inventory(). Closing a direct mode
+        connection does not stop autonomous inventory. Switching to Answer settles
+        old reports and verifies the mode before allowing another inventory.
+        """
+        request = set_working_mode(mode, persist=persist)
+        deadline = asyncio.get_running_loop().time() + self.timeout
+        if mode == WorkingMode.ANSWER:
+            deadline += 1.0
+        async with self._operation(deadline):
+            self._guard(request.command)
+            self.dispatcher.on_notification = None
+            quarantined = 0
+            settled = False
+
+            def quarantine(frame):
+                nonlocal quarantined
+                self.dispatcher._unexpected(frame, poison=False)
+                if settled:
+                    raise ProtocolError("Report after working-mode cleanup; boundary is unverified")
+                quarantined += 1
+
+            if mode == WorkingMode.ANSWER:
+                self.dispatcher.on_notification = quarantine
+            result = None
+            try:
+                result = await self._execute(request, locked=True)
+                self._working_mode = WorkingMode(mode) if result.ok else None
+                if (
+                    result.outcome in (Outcome.SUCCESS, Outcome.PARTIAL)
+                    and mode == WorkingMode.ANSWER
+                ):
+                    await self._settle_stream()
+                    checked = await self._read_working_mode()
+                    actual = checked.require_success()
+                    if actual.mode is not WorkingMode.ANSWER:
+                        raise ProtocolError("Working mode read-back after Stop is not Answer")
+                    await self._settle_stream()
+                    settled = True
+                    result = replace(
+                        result, confirmation=Confirmation.READ_BACK, steps=(result, checked)
+                    )
+            except asyncio.CancelledError:
+                self._working_mode = None
+                self.dispatcher._fail(StateError("Working-mode change cancelled; boundary unknown"))
+                raise
+            except Exception as error:
+                self._working_mode = None
+                self.dispatcher._fail(error)
+                result = replace(
+                    result or CommandResult(Outcome.UNKNOWN, command=request.command),
+                    outcome=Outcome.UNKNOWN,
+                    diagnostics=(result.diagnostics if result else ()) + (str(error),),
+                )
+            if quarantined:
+                result = replace(
+                    result,
+                    diagnostics=result.diagnostics
+                    + (
+                        f"Quarantined {quarantined} old stream frames during mode change; "
+                        "raw frames retained in dispatcher.unsolicited (last 32)",
+                    ),
+                )
+            self.last_result = result
             return result
 
     async def get_heartbeat_interval(self) -> CommandResult[int]:
@@ -3634,15 +4055,52 @@ class ZKReader:
         config: InventoryConfig = InventoryConfig(),
         queue_size: int = 1024,
         trigger: bool = False,
+        antenna_mask: int | None = None,
+        antenna_sequence: tuple[int, ...] | None = None,
     ) -> InventorySession:
-        """Start a managed async report iterator; stop explicitly or use its context manager."""
+        """Start a managed report stream; stop explicitly or use its context manager.
 
-        session = InventorySession(self, mode, config, queue_size=queue_size, trigger=trigger)
-        await session.start()
+        Scenario applies config to CFG9/10/11 and antenna selection, then restores
+        changed settings after a confirmed stop. CFG31 remains caller-managed.
+        scan_time_100ms does not limit Scenario duration; the application stops it.
+        Scenario antenna_mask selects one or more ports (bit0=ANT1), overriding
+        config.antenna. If omitted, config.antenna selects one port as before.
+        The reader controls antenna cycling; no host Start/Stop loop is added.
+        Answer antenna_sequence repeats one bounded round per listed port in order;
+        it overrides config.antenna and does not modify the saved antenna mask.
+        """
+
+        session = InventorySession(
+            self,
+            mode,
+            config,
+            queue_size=queue_size,
+            trigger=trigger,
+            antenna_mask=antenna_mask,
+            antenna_sequence=antenna_sequence,
+        )
+        if self._lifecycle_lock.locked():
+            raise StateError("Wait for reader Start/Stop/close to finish")
+        async with self._lifecycle_lock:
+            await session.start()
         return session
 
     async def stop_inventory(self) -> InventoryOutcome:
-        """Stop by mode-specific semantics; 0x93 has no ACK of its own."""
+        """Stop by mode-specific semantics; 0x93 has no ACK of its own.
+
+        An unknown reader without an owned session returns an incomplete outcome;
+        no stop opcode can safely be inferred from the absence of a session.
+        Stop waits for pending Start preparation and completes cleanup even if cancelled.
+        """
+        return await _await_cleanup(
+            asyncio.create_task(self._stop_inventory(), name="zk-reader-stop")
+        )
+
+    async def _stop_inventory(self):
+        async with self._lifecycle_lock:
+            return await self._stop_inventory_locked()
+
+    async def _stop_inventory_locked(self):
         if self._session is not None:
             return await self._session.stop()
         if self.dispatcher.pending_command == 0x01:
@@ -3651,6 +4109,13 @@ class ZKReader:
             task = getattr(self, "_answer_done", None)
             if task is not None:
                 return await asyncio.shield(task)
+        if self.state is ReaderState.UNKNOWN or self.dispatcher.fault is not None:
+            return InventoryOutcome(
+                outcome=Outcome.UNKNOWN,
+                complete=False,
+                termination_reason="stop_unconfirmed",
+                diagnostics=("Reader state unknown; establish a clean boundary before recovery",),
+            )
         if self.is_inventory_running:
             raise StateError("This inventory opcode has no asynchronous stop command")
         return InventoryOutcome(termination_reason="already_idle")
@@ -3961,286 +4426,6 @@ class ZKReader:
         )
 
 
-# ==============================================================================
-# NATION API value mapping
-# ==============================================================================
-
-# Explicit value conversions. RF IDs, RSSI and phase are never guessed.
-
-
-class Equivalence(str, Enum):
-    VERIFIED = "verified-equivalent"
-    CONVERTED = "converted"
-    MULTI_STEP = "multi-step"
-    APPROXIMATE = "approximate-with-conditions"
-    UNSUPPORTED = "unsupported"
-    UNVERIFIED = "unverified"
-
-
-CONTRACT = {
-    "reader_info": Equivalence.CONVERTED,
-    "power": Equivalence.MULTI_STEP,
-    "antenna_mask": Equivalence.CONVERTED,
-    "inventory": Equivalence.CONVERTED,
-    "epc_write": Equivalence.MULTI_STEP,
-    "memory": Equivalence.CONVERTED,
-    "rf_profile": Equivalence.UNVERIFIED,
-    "rf_band": Equivalence.UNVERIFIED,
-    "rssi_dbm": Equivalence.APPROXIMATE,
-    "phase_radians": Equivalence.UNVERIFIED,
-    "beeper_query": Equivalence.UNSUPPORTED,
-    "native_filter": Equivalence.UNSUPPORTED,
-}
-
-
-@dataclass(frozen=True)
-class RFMapping:
-    """Caller-supplied, measured mapping, specific to both firmwares."""
-
-    nation_id: int
-    zk_id: int
-    evidence: str
-    confirmed: bool = False
-
-    def require(self, nation_id: int) -> int:
-        if not self.confirmed or not self.evidence.strip() or nation_id != self.nation_id:
-            raise UnverifiedFeature("An explicit confirmed RF mapping with evidence is required")
-        return integer(self.zk_id, 0, 65535, "native profile ID")
-
-
-def hex_epc(value: str) -> bytes:
-    if not isinstance(value, str) or not value or len(value) % 4:
-        raise ValidationError("EPC hex must contain whole 16-bit words")
-    if any(c not in "0123456789abcdefABCDEF" for c in value):
-        raise ValidationError("EPC hex must not contain separators or non-hex digits")
-    data = bytes.fromhex(value)
-    if len(data) > 62:
-        raise ValidationError("EPC exceeds 31 words")
-    return data
-
-
-def power_dict(powers: tuple[int, ...]) -> dict[int, int]:
-    return {i + 1: value for i, value in enumerate(powers)}
-
-
-def tag_dict(report: TagReport) -> dict:
-    """Preserve raw measurements and label project-defined RSSI estimates."""
-    value = {
-        "epc": report.epc.hex().upper() if report.epc is not None else None,
-        "tid": report.tid.hex().upper() if report.tid is not None else None,
-        "antenna": report.antenna,
-        "antenna_mask": report.antenna_mask,
-        "rssi_raw": report.rssi_raw,
-        "rssi_dbm": report.rssi_dbm,
-        "rssi_source": report.rssi_source,
-        "rssi_in_calibration_range": report.rssi_in_calibration_range,
-        "frequency_khz": report.frequency_khz,
-        "phase_raw": report.phase_raw.hex().upper() if report.phase_raw is not None else None,
-        "received_at": report.received_at,
-        "timestamp_source": report.timestamp_source,
-        "native": report,
-    }
-    if report.memory_data is not None:
-        value["memory"] = report.memory_data.hex().upper()
-        value["memory_bank"] = report.memory_bank
-        value["word_address"] = report.word_address
-    return value
-
-
-def unsupported(operation: str):
-    kind = CONTRACT.get(operation, Equivalence.UNSUPPORTED)
-    if kind is Equivalence.UNVERIFIED:
-        raise UnverifiedFeature(f"{operation}: no verified NATION-to-ZK mapping")
-    raise UnsupportedFeature(f"{operation}: not available in the adapter contract")
-
-
-# ==============================================================================
-# NATION async API adapter
-# ==============================================================================
-
-# Familiar NATION operation names with an explicit async ZK result contract.
-#
-# Not a drop-in for blocking/threaded nrn.py. Never imports the reference driver,
-# builds NATION frames, or substitutes numeric RF identifiers.
-
-
-class NationAdapter:
-    def __init__(self, reader):
-        self.reader = reader
-
-    async def open(self):
-        return await self.reader.open()
-
-    async def close(self):
-        return await self.reader.close()
-
-    def get_sdk_info(self):
-
-        return {"name": SDK_NAME, "version": SDK_VERSION, "adapter": "NATION async operations"}
-
-    async def Query_Reader_Information(self):
-        return await self.reader.get_reader_info()
-
-    async def query_rfid_ability(self):
-        return self.reader.get_capabilities()
-
-    async def query_reader_power(self):
-        result = await self.reader.get_power()
-        return replace(result, data=power_dict(result.data) if result.ok else None)
-
-    async def configure_reader_power(
-        self, antenna_powers: dict[int, int], persistence: bool = False
-    ):
-        if not isinstance(antenna_powers, dict) or not antenna_powers:
-            raise ValidationError("antenna_powers must be a nonempty dictionary")
-        boolean(persistence, "persistence")
-        reader = self.reader
-        for port, dbm in antenna_powers.items():
-            integer(port, 1, reader.capabilities.antenna_ports, "antenna")
-            integer(dbm, 0, 30, "ZK power_dbm")
-        async with reader._operation():
-            before = await reader._execute(
-                get_power(ports=reader.capabilities.antenna_ports), locked=True
-            )
-            if not before.ok:
-                return before
-            desired = list(before.data)
-            for port, dbm in antenna_powers.items():
-                desired[port - 1] = dbm
-            result = await reader._execute(
-                set_power(
-                    tuple(desired), ports=reader.capabilities.antenna_ports, persist=persistence
-                ),
-                locked=True,
-            )
-            return replace(result, steps=(before, result))
-
-    def build_antenna_mask(self, antenna_ids: list[int]) -> int:
-        if not antenna_ids or len(set(antenna_ids)) != len(antenna_ids):
-            raise ValidationError("Antenna IDs must be nonempty and unique")
-        for port in antenna_ids:
-            integer(port, 1, self.reader.capabilities.antenna_ports, "antenna")
-        return sum(1 << (p - 1) for p in antenna_ids)
-
-    async def save_antenna_mask(self, antenna_mask: int):
-        return await self.reader.set_antennas(antenna_mask, persist=True)
-
-    async def query_enabled_ant_mask(self):
-        return await self.reader.get_antennas()
-
-    async def _change_antenna(self, ant_id, enabled, save):
-        reader = self.reader
-        ports = reader.capabilities.antenna_ports
-        integer(ant_id, 1, ports, "ant_id")
-        if ports > 8:
-            raise UnsupportedFeature("Full antenna readback not verified for 16 ports")
-        async with reader._operation():
-            before = await reader._execute(get_reader_info(), locked=True)
-            if not before.ok:
-                return before
-            mask = before.data.antenna_raw
-            mask = mask | (1 << (ant_id - 1)) if enabled else mask & ~(1 << (ant_id - 1))
-            result = await reader._execute(
-                set_antennas(mask, ports=ports, persist=save), locked=True
-            )
-            return replace(result, steps=(before, result))
-
-    async def enable_ant(self, ant_id: int, save=False):
-        return await self._change_antenna(ant_id, True, save)
-
-    async def disable_ant(self, ant_id: int, save=False):
-        return await self._change_antenna(ant_id, False, save)
-
-    def is_inventory_running(self):
-        return self.reader.is_inventory_running
-
-    async def start_inventory_with_mode(
-        self, antenna_ids: list[int], *, mode=InventoryMode.SCENARIO, config=InventoryConfig()
-    ):
-        mask = self.build_antenna_mask(antenna_ids)
-        if mask & (mask - 1):
-            raise UnsupportedFeature("This adapter stream contract selects one antenna per session")
-        return await self.reader.start_inventory(
-            mode, config=replace(config, antenna=antenna_ids[0])
-        )
-
-    async def run_inventory(
-        self, antenna_ids: list[int], callback, *, duration: float, mode=InventoryMode.SCENARIO
-    ):
-        """Callbacks run in the consumer task, outside RX; callback failure stops RF."""
-        if not callable(callback) or not isinstance(duration, (int, float)) or duration <= 0:
-            raise ValidationError("Provide callback and a positive duration in seconds")
-        session = await self.start_inventory_with_mode(antenna_ids, mode=mode)
-        try:
-            async with asyncio.timeout(duration):
-                async for report in session:
-                    if not isinstance(report, TagReport):
-                        continue
-                    result = callback(tag_dict(report))
-                    if inspect.isawaitable(result):
-                        await result
-        except TimeoutError:
-            pass
-        finally:
-            outcome = await session.stop()
-        return outcome
-
-    async def stop_inventory(self):
-        return await self.reader.stop_inventory()
-
-    async def write_epc_to_target_auto(
-        self, target_tag_epc: str, new_epc_hex: str, *, access_pwd=0, timeout=3.0, verify=True
-    ):
-        old, new = hex_epc(target_tag_epc), hex_epc(new_epc_hex)
-        if len(old) > 30 or len(new) > 30:
-            raise UnsupportedFeature(
-                "Adapter exact EPC target supports 1..15 words; use native stable TID mask for longer EPC"
-            )
-        integer(access_pwd, 0, 0xFFFFFFFF, "access_pwd")
-        return await self.reader.write_epc(
-            new,
-            target=TagTarget(epc=old),
-            access_password=access_pwd.to_bytes(4, "big"),
-            verify=verify,
-            verification_target=TagTarget(epc=new),
-            timeout=timeout,
-        )
-
-    async def select_profile(
-        self, profile_id: int, *, mapping: RFMapping | None = None, persist=False
-    ):
-        if mapping is None:
-            unsupported("rf_profile")
-        return await self.reader.set_profile(mapping.require(profile_id), persist=persist)
-
-    async def get_profile(self):
-        """Result contains a native ZK ID; no NATION equivalence is implied."""
-        return await self.reader.get_profile()
-
-    async def query_rf_band(self):
-        """Result contains native Region fields, not NATION band codes."""
-        return await self.reader.get_region()
-
-    async def set_rf_band(self, band_code: int, persist=True):
-        unsupported("rf_band")
-
-    async def set_beeper(self, mode: int):
-        integer(mode, 0, 2, "mode")
-        if mode == 1:
-            raise UnsupportedFeature("NATION beep-after-inventory is not ZK beep-on-every-tag")
-        return await self.reader.set_buzzer(mode == 2)
-
-    async def get_beeper(self):
-        unsupported("beeper_query")
-
-    async def set_filter_settings(self, repeated_time_ms=0, rssi_threshold=0):
-        unsupported("native_filter")
-
-    async def get_session(self):
-        result = await self.reader.get_query_parameters()
-        return replace(result, data=result.data.session if result.ok else None)
-
-
 # Public integration API (low-level helpers remain explicitly importable).
 __all__ = [
     "rssi_to_dbm",
@@ -4263,10 +4448,12 @@ __all__ = [
     "InventoryConfig",
     "InventoryData",
     "InventoryMode",
+    "ScenarioSession",
     "InventoryOutcome",
     "InventoryStatistics",
     "Heartbeat",
     "Region",
+    "CustomRegion",
     "GPIOState",
     "RealTimeConfig",
     "WorkingMode",
@@ -4295,9 +4482,6 @@ __all__ = [
     "SDK_VERSION",
     "__version__",
     "SerialTransport",
-    "NationAdapter",
-    "RFMapping",
-    "Equivalence",
     "RFProfile",
     "PROFILES",
     "get_profile_definition",

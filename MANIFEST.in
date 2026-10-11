@@ -6,7 +6,7 @@ recursive-include web *.py *.js *.ts *.md
 recursive-include tools *.py
 recursive-include tests *.py *.md *.mjs *.cjs *.html *.css *.js
 recursive-include fixtures *.md *.json *.hex
-include compat/nation/nrn.py compat/nation/LICENSE compat/nation/UPSTREAM.md compat/nation/README.md compat/nation/CHANGELOG.md compat/nation/mapping_cases.json
+include compat/nation/nrn.py compat/nation/LICENSE compat/nation/UPSTREAM.md compat/nation/README.md compat/nation/CHANGELOG.md
 prune local_data
 prune .codex
 prune Protocol_ZK
@@ -21,3 +21,4 @@ prune logs
 prune node_modules
 prune .github
 global-exclude __pycache__ *.py[cod] plan_agent*.md .env .env.* *.pem *.key *.p12 *.pfx *.dll *.exe *.so *.dylib
+recursive-include mapping *.py *.json *.md

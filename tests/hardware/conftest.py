@@ -14,7 +14,7 @@ async def hardware_reader():
     if not port:
         pytest.skip("Set ZK_HARDWARE_PORT and explicitly select -m hardware")
     ports = int(os.environ.get("ZK_ANTENNA_PORTS", "1"))
-    baud = int(os.environ.get("ZK_BAUDRATE", "57600"))
+    baud = int(os.environ.get("ZK_BAUDRATE", "115200"))
     async with ZKReader(
         SerialTransport(port, baud),
         timeout=5,

@@ -200,12 +200,22 @@ class BrowserReader:
             async for report in session:
                 self.emit("tag" if isinstance(report, TagReport) else "heartbeat", report)
         except Exception as error:
-            self.emit("error", {"type": type(error).__name__, "message": str(error)})
             # A dead consumer must not leave a healthy reader inventorying indefinitely.
+            outcome = None
             try:
-                await self.reader.stop_inventory()
-            except Exception:
-                pass  # Reader state/outcome retain the native stop failure.
+                outcome = await session.stop()
+                for report in session.drain():
+                    self.emit("tag" if isinstance(report, TagReport) else "heartbeat", report)
+            finally:
+                self.emit("state", {"state": self.reader.state.value})
+                self.emit(
+                    "error",
+                    {
+                        "type": type(error).__name__,
+                        "message": str(error),
+                        "inventory_outcome": outcome,
+                    },
+                )
 
     async def call(self, operation, args_json):
         try:
@@ -222,6 +232,9 @@ class BrowserReader:
             if operation == "stop_inventory" and self.consumer:
                 await self.consumer
                 self.consumer = None
+            if operation == "stop_inventory" and value.termination_reason == "already_idle":
+                if self.session is not None and self.session.outcome is not None:
+                    value = self.session.outcome
             return self.envelope(data=value)
         except Exception as error:
             return self.failure(error)

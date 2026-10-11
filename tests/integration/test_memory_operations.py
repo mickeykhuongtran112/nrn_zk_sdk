@@ -98,7 +98,7 @@ async def test_address_and_baud_only_update_after_ack():
     async with ZKReader(t) as r:
         assert (await r.set_address(7)).ok and r.address == 7
         t.handler = lambda cmd, data: response(cmd, address=7)
-        assert (await r.set_baudrate(115200)).ok and t.baudrate == 115200
+        assert (await r.set_baudrate(57600)).ok and t.baudrate == 57600
 
 
 async def test_cancel_write_keeps_last_result_and_blocks_reuse():

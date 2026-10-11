@@ -189,6 +189,7 @@ export class ZKWebSerialReader extends EventTarget {
   _receive(kind, dataJSON) {
     const data = JSON.parse(dataJSON);
     if (kind === "trace" && data.kind === "fault") this._markFault();
+    if (kind === "state") this.state = data.state;
     this._emit(kind, data);
   }
 
@@ -288,9 +289,13 @@ export class ZKWebSerialReader extends EventTarget {
   getReaderInfo() { return this.call("get_reader_info"); }
   getPower() { return this.call("get_power"); }
   setPower(power_dbm, persist = false) { return this.call("set_power", { power_dbm, persist }); }
+  getCustomRegion() { return this.call("get_custom_region"); }
+  setCustomRegion(region, persist = false) {
+    return this.call("set_custom_region", { ...region, persist });
+  }
   inventoryOnce(config = {}) { return this.call("inventory_once", { config }); }
-  startInventory({ mode = "scenario", config = {}, queue_size = 1024, trigger = false } = {}) {
-    return this.call("start_inventory", { mode, config, queue_size, trigger });
+  startInventory({ mode = "scenario", config = {}, queue_size = 1024, trigger = false, antenna_mask = null, antenna_sequence = null } = {}) {
+    return this.call("start_inventory", { mode, config, queue_size, trigger, antenna_mask, antenna_sequence });
   }
   stopInventory() { return this.call("stop_inventory"); }
   writeEpc({ targetEpc, newEpc, accessPassword = "00000000", verify = true }) {

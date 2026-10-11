@@ -8,6 +8,8 @@ pytestmark = pytest.mark.asyncio
 
 async def test_buffer_counts_then_multiframe_identifiers_and_read_counts():
     def peer(cmd, data):
+        if cmd == 0x77:
+            return response(cmd, bytes((0, 0, 0, 0, 4, 0, 1, 0, 32, 0)) + bytes(34))
         if cmd == 0x18:
             return response(cmd, bytes.fromhex("00020005"))
         if cmd == 0x72:

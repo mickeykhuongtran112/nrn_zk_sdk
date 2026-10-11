@@ -1,8 +1,12 @@
 # Runtime checks
 
+The shared harness also checks Work Mode gating, temporary Real-time Start/Stop,
+and draining queued reports in CPython and Pyodide.
+
 The same `src/zk_rfid.py` runs on CPython and Pyodide. The harness covers eight
-reference TX vectors, 2,000 byte-fragmented RX frames, inventory, phase/RSSI,
-write/read-back, cancellation after TX, and task cleanup.
+reference TX vectors, 2,000 byte-fragmented RX frames, disabled CFG11 masks, inventory, phase/RSSI,
+Range Control set/read-back/restore, memory write/read-back, cancellation after TX,
+and task cleanup.
 
 ```sh
 python -m pytest tests/runtime -q
@@ -12,7 +16,8 @@ node tests/runtime/run_pyodide.mjs local_data/pyodide/node_modules/pyodide/pyodi
 
 `test_standalone.py` copies the SDK to a temporary directory and runs Python with
 `-I -S`, excluding site packages and `PYTHONPATH`. It checks imports, type hints,
-pickling, and the optional serial dependency.
+pickling, and the optional serial dependency. It also blocks imports of mapping
+and reference packages and checks that NATION adapter types are absent from core.
 
 The Node harness copies the same module into Pyodide and provides an in-memory
 async transport. It opens no serial port. Browser/Web Serial lifecycle checks are

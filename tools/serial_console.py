@@ -86,7 +86,7 @@ async def run(args):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", required=True)
-    p.add_argument("--baud", type=int, default=57600)
+    p.add_argument("--baud", type=int, default=115200)
     p.add_argument("--address", type=lambda s: int(s, 0), default=0)
     p.add_argument("--command", type=lambda s: int(s, 0), required=True)
     p.add_argument(

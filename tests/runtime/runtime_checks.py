@@ -10,8 +10,10 @@ from pathlib import Path
 from zk_rfid import (
     FrameParser,
     InventoryConfig,
+    InventoryMode,
     Outcome,
     ReaderState,
+    StateError,
     TagMask,
     TagTarget,
     ZKReader,
@@ -32,6 +34,8 @@ class Peer:
         self.writes = []
         self.silent = False
         self.active = 0
+        self.range_control = bytes.fromhex("00000064")
+        self.mode = 0
 
     async def open(self):
         pass
@@ -45,6 +49,20 @@ class Peer:
             return len(data)
         cmd = data[2]
         payload = b"\0\1" if cmd == 2 else bytes.fromhex("010102ABCD55") if cmd == 1 else b""
+        if cmd == 0xEB and data[3:-2] == b"\x0b":
+            payload = bytes(4)  # Disabled CFG11 header observed on the one-port reader.
+        if cmd == 0xEB and data[3:-2] == b"\x10":
+            payload = self.range_control
+        if cmd == 0xEA and data[4] == 16:
+            assert data[3] == 1  # Range Control defaults to volatile writes.
+            self.range_control = data[5:-2]
+        if cmd == 0x77:
+            payload = (
+                bytes((self.mode, 0, 0, 0, 4, 0, 0, 0, 0, 0)) + bytes.fromhex("E280") + bytes(32)
+            )
+        if cmd == 0x76:
+            assert data[3] & 0x80
+            self.mode = data[3] & 0x7F
         reply = response(cmd, payload, 1 if cmd == 1 else 0)
         for v in reply:
             self.rx.put_nowait(bytes((v,)))
@@ -84,6 +102,28 @@ async def run_checks(vector_path):
     baseline = set(asyncio.all_tasks())
     peer = Peer()
     async with ZKReader(peer, timeout=0.05) as r:
+        original_range = (await r.get_range_control()).require_success()
+        assert original_range == 100
+        (await r.set_range_control(90)).require_success()
+        assert (await r.get_range_control()).require_success() == 90
+        (await r.set_range_control(original_range)).require_success()
+        assert (await r.get_range_control()).require_success() == original_range
+        mask = await r.get_inventory_mask()
+        assert mask.ok and mask.require_success() is None and mask.raw_data == bytes(4)
+        mode = await r.get_working_mode()
+        assert mode.require_success().config.mask is None
+        assert mode.raw_data[10:12] == bytes.fromhex("E280")
+        (await r.set_working_mode(1)).require_success()
+        try:
+            await r.inventory_once()
+        except StateError:
+            pass
+        else:
+            raise AssertionError("Inventory in autonomous mode was not blocked")
+        stream = await r.start_inventory(InventoryMode.REAL_TIME)
+        peer.rx.put_nowait(response(0xEE, bytes.fromhex("0102ABCD55")))
+        stop = await stream.stop()
+        assert stop.complete and peer.mode == 0 and len(stream.drain()) == 1
         out = await r.inventory_once(InventoryConfig())
         assert out.reports[0].epc == bytes.fromhex("ABCD")
         target = TagTarget(mask=TagMask(2, 0, 16, bytes.fromhex("E280")))
@@ -111,6 +151,11 @@ async def run_checks(vector_path):
         "fragmented_rx": True,
         "phase_conversion": True,
         "user_rssi_mapping": True,
+        "disabled_cfg11": True,
+        "disabled_realtime_mask": True,
+        "range_control": True,
+        "working_mode": True,
+        "stop_and_drain": True,
         "readback": True,
         "cancellation": True,
         "leaked_tasks": len(leaked),

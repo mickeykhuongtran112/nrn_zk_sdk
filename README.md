@@ -4,6 +4,9 @@ An async Python SDK for ZK-7180M and ZK-7182M Ex10 UHF RFID readers. Read tags,
 configure the reader, and access Gen2 tag memory through a single Python module.
 The SDK implements the reader protocol directly and requires no vendor DLL.
 
+`src/zk_rfid.py` contains only the native ZK SDK. Existing NATION applications can
+use the separate [mapping manual and optional adapter](mapping/nation_to_zk/README.md).
+
 **Python 3.11+ · CPython and Pyodide · MIT license**
 
 [Getting started](docs/getting_started.md) · [Examples](examples/README.md) ·
@@ -26,6 +29,8 @@ and browser applications do not need `pyserial`.
 ## Read tags
 
 Connect an antenna and set the port, baud rate, and antenna count for your reader.
+Use Answer working mode. The SDK checks it before inventory and reports when an
+explicit switch from Real-time/Trigger is needed; it does not change the boot mode.
 This example uses `COM3` at 115200 baud; on Linux, use a path such as `/dev/ttyUSB0`.
 
 ```python
@@ -79,6 +84,7 @@ pinned Pyodide runtime; see the bridge guide for offline hosting.
 ## Documentation
 
 - [Inventory](docs/inventory_modes.md): Answer, Scenario, Real-time, FastID, and Mix.
+- [RF settings](docs/rf_settings.md): regions, channels, RF profiles, and S-CST configuration.
 - [Tag memory](docs/tag_memory.md): memory map, targeting, EPC writes, and read-back.
 - [Results and recovery](docs/api.md): native errors, timeouts, and connection state.
 - [RSSI and phase](docs/phase_and_live_view.md): units and conversion conventions.

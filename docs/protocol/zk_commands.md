@@ -18,7 +18,7 @@ for signatures and [compatibility](../supported_devices.md) for deployment limit
 | 19 | Mix inventory |
 | 1A | `inventory_matching_epc` |
 | 21 / 4C | `get_reader_info` / `get_serial_number` |
-| 22 / 9E | `set_region` / `get_region` |
+| 22 / 9E | `set_region` / `get_region`; `set_custom_region` / `get_custom_region` |
 | 24 / 25 / 28 | `set_address` / `set_inventory_time` / `set_baudrate` |
 | 2F / 94 | `set_power` / `get_power` |
 | 33 / 40 | `pulse_indicator` / `set_buzzer` |
@@ -47,23 +47,26 @@ for signatures and [compatibility](../supported_devices.md) for deployment limit
 |---|---|---|
 | 7 | Get/set scan parameters | Interval in 10 ms, dwell in 100 ms, count |
 | 8 | Get/set TagFocus | Boolean, tag-dependent |
-| 9 | Get/set query parameters | Q, session, phase |
+| 9 | Get/set query parameters | Q, Scenario session/mode selector, phase |
 | 10 | Get/set TID parameters | Word address/count; zero count selects EPC |
-| 11 | Get/set inventory mask | Bit mask; `None` clears it |
+| 11 | Get/set inventory mask | Zero bit length reads as `None`; setting `None` clears it |
+| 16 | `get_range_control` / `set_range_control` | Native 0-100; four bytes `00 00 00 value`; no distance/dB conversion |
 | 25 | `get_config` / `set_config` | Raw getter; confirmed 6-byte setter |
 | 29 | `get_config` / `set_config` | Raw getter; confirmed 5-byte setter |
-| 31 | Get/set custom profiles | Three big-endian 16-bit profile IDs |
+| 31 | Get/set custom profiles | Three ordered big-endian 16-bit IDs; used by S-CST, outside session cleanup |
 
-The native RF profile table in [the source](../../src/zk_rfid.py) contains 54
-records with Tari, BLF, and encoding from the manual. Availability still depends
-on firmware.
+The [RF profile table](../rf_profiles.md) is generated from SDK metadata.
+Availability depends on firmware. See [RF settings](../rf_settings.md) for region
+and profile selection, and [Inventory](../inventory_modes.md) for CFG9/31 usage.
 
 ## Side effects
 
 Power, antenna, region, profile, and CFG APIs with `persist=False` default to
 volatile changes. Encoding of the persistence flag differs between commands.
-Setters without that argument are not necessarily volatile: `0x75/0x76` save
-Real-time configuration/mode, and `0x6A` requires a power cycle.
+Work Mode `0x76` uses bit 7: clear to save, set for a temporary change. The SDK
+defaults to temporary (`80/81/82`); `persist=True` sends `00/01/02`.
+Setters without a persistence argument are not necessarily volatile: `0x75` saves
+Real-time configuration, and `0x6A` requires a power cycle.
 
 Inventory emits RF and affects tag inventoried state and the reader buffer.
 Changing maximum buffer ID length clears the buffer. Tag writes, Lock, Kill, and

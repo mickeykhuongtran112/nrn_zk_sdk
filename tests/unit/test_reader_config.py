@@ -77,6 +77,22 @@ def test_real_time_set_variable_get_fixed_layout():
     assert cfg.config.special_strategy
 
 
+def test_real_time_disabled_mask_ignores_retained_buffer_data():
+    # The reader retains E280 after CFG11 is cleared; MaskLen is still zero.
+    data = bytes((1, 0, 0, 0, 4, 0, 0, 0, 0, 0)) + bytes.fromhex("E280") + bytes(32)
+    cfg = sdk.decode_working_mode(data)
+    assert cfg.mode == 1 and cfg.config.mask is None
+    for malformed in (data[:-1], data + b"\0"):
+        with pytest.raises(sdk.ProtocolError):
+            sdk.decode_working_mode(malformed)
+
+
+def test_real_time_active_mask_still_rejects_nonzero_unused_bytes():
+    data = bytes((1, 0, 0, 0, 4, 0, 2, 0, 0, 16)) + bytes.fromhex("E28001") + bytes(31)
+    with pytest.raises(sdk.ProtocolError, match="Nonzero unused real-time mask bytes"):
+        sdk.decode_working_mode(data)
+
+
 def test_extended_codecs():
     assert sdk.encode_scan(ScanParameters(3, 0, 5)) == bytes((3, 0, 5))
     assert sdk.encode_query(QueryParameters(6, 254, True)) == bytes((22, 254))
@@ -114,3 +130,51 @@ def test_ranges_and_profile_units():
         sdk.set_power(True, ports=1)
     with pytest.raises(ValidationError):
         ReaderCapabilities(antenna_ports=2)
+
+
+@pytest.mark.parametrize("payload", ["00000000", "01002000", "02001000", "03003F00", "FFFFFF00"])
+def test_cfg11_zero_length_means_disabled_regardless_of_inactive_header(payload):
+    assert sdk.get_config(11).decode(bytes.fromhex(payload)) is None
+
+
+@pytest.mark.parametrize("payload", ["01002003A0", "02000010E280", "03003F08AB"])
+def test_cfg11_active_mask_preserves_fields(payload):
+    data = bytes.fromhex(payload)
+    mask = sdk.get_config(11).decode(data)
+    assert isinstance(mask, sdk.TagMask)
+    assert mask.encode() == data
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "",  # Missing header.
+        "000000",  # Missing length byte.
+        "0000000000",  # Disabled masks have no data bytes.
+        "0100200000",
+        "00000008AA",  # Bank 0 is invalid for an active mask.
+        "04002008AA",  # Reserved bank.
+        "01400008AA",  # Address exceeds 16383.
+        "013FFF02C0",  # Selection extends past the address limit.
+        "01002009AA",  # Truncated data.
+        "01002008AABB",  # Extra data.
+        "01002003AF",  # Nonzero low padding bits.
+    ],
+)
+def test_cfg11_malformed_masks_are_not_treated_as_disabled(payload):
+    with pytest.raises(sdk.ProtocolError):
+        sdk.get_config(11).decode(bytes.fromhex(payload))
+
+
+@pytest.mark.parametrize("payload", ["00000000", "04002000", "01400000", "FFFFFF00"])
+def test_cfg11_writes_still_validate_inactive_bank_and_address(payload):
+    with pytest.raises(sdk.ProtocolError):
+        sdk.set_config(11, bytes.fromhex(payload))
+
+
+def test_cfg11_clear_encoding_and_shared_tag_mask_validation_are_unchanged():
+    assert sdk.set_config(11, bytes.fromhex("01002000")).data.hex() == "010b01002000"
+    with pytest.raises(ValidationError):
+        sdk.TagMask(0, 0, 0, b"")
+    with pytest.raises(ValidationError):
+        sdk.TagTarget(mask=sdk.TagMask(1, 32, 0, b""))

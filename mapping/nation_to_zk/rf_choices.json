@@ -1,0 +1,625 @@
+{
+  "schema_version": 2,
+  "status": "approved-application-policy",
+  "runtime_applied": true,
+  "selected_baseband_source": "greader-0.39",
+  "application": "Explicit configuration calls only; never on connect or Start. Engineering choices, not measured RF equivalence. Generic profile_presets remain unapproved.",
+  "antenna": {"persist": true, "apply": "Explicit Set with read-back; Start does not save again"},
+  "inventory": {
+    "mode": "scenario",
+    "config": {
+      "antenna": 1,
+      "data": "epc",
+      "q": 4,
+      "session": 0,
+      "target": 0,
+      "phase": false
+    },
+    "epc_tid": "Answer FastID; host repeats rounds over the selected ports; TID may be absent on incompatible tags",
+    "policy": "Scenario EPC by default; preserve user Q/Session/Target and selected ports. Save antenna configuration explicitly. No automatic profile, power or region change at Start."
+  },
+  "baseband_source": "nextwaves: cached UI and protocol Set table p.60; greader-0.39: demo InitBase. Select explicitly; speed 4 conflicts. See vendor_reference.md.",
+  "baseband_speeds": [
+    {
+      "nation_speed": 0,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 40,
+      "encoding": "FM0",
+      "zk_profile_id": 205,
+      "difference": "50 instead of 40 kHz (+25%); Tari 20 instead of 25 us. Lowest known FM0 BLF; no throughput-equivalence claim."
+    },
+    {
+      "nation_speed": 1,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 250,
+      "encoding": "Miller4",
+      "zk_profile_id": 146,
+      "difference": "Same BLF and encoding; Tari 20 instead of 25 us. PIE/modulation equivalence remains unknown."
+    },
+    {
+      "nation_speed": 2,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 300,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "320 instead of 300 kHz (+6.67%); Tari 20 instead of 25 us."
+    },
+    {
+      "nation_speed": 3,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 400,
+      "encoding": "FM0",
+      "zk_profile_id": 203,
+      "difference": "426 instead of 400 kHz (+6.5%); Tari 12.5 instead of 6.25 us. Alternative 104 preserves Tari but uses 320 kHz (-20%)."
+    },
+    {
+      "nation_speed": 4,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 320,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "Same BLF and encoding; Tari 20 instead of 25 us. This is the cached Nextwaves UI dialect, not a different tool's speed-4 Miller2 definition."
+    },
+    {
+      "nation_speed": 255,
+      "nation_tari_us": null,
+      "nation_blf_khz": null,
+      "encoding": null,
+      "zk_profile_id": null,
+      "difference": "Keep the current ZK profile and expose its ID. This does not emulate NATION automatic setup; require a manual preset if automatic behavior is essential."
+    }
+  ],
+  "profile_presets": [
+    {
+      "nation_profile": 0,
+      "intent": "Default / balanced application preset",
+      "zk_profile_id": 141,
+      "difference": "Proposed 320 kHz Miller4 preset; the NATION reference gives no physical definition for this profile ID."
+    },
+    {
+      "nation_profile": 1,
+      "intent": "High performance / short-airtime application preset",
+      "zk_profile_id": 103,
+      "difference": "Proposed 640 kHz FM0, Tari 6.25 us. The cached web's P1 label says 250 kHz Miller4 instead: use speed-1 choice 146 for that dialect. Do not apply this row to that button unchanged."
+    },
+    {
+      "nation_profile": 2,
+      "intent": "Dense-tag / conservative Miller4 starting preset",
+      "zk_profile_id": 146,
+      "difference": "Proposed 250 kHz Miller4, Tari 20 us. Dense-tag collisions still require Q/Session tuning; dense tags and dense-reader interference are different conditions."
+    }
+  ],
+  "bands": [
+    {
+      "nation_band": 0,
+      "label": "Gb920_925",
+      "envelope_khz": [
+        920625,
+        924375
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 920625,
+          "channel_count": 16,
+          "spacing_khz": 250
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 1,
+        "min_channel": 2,
+        "max_channel": 17
+      },
+      "centers": {
+        "start_frequency_khz": 920625,
+        "channel_count": 16,
+        "spacing_khz": 250
+      },
+      "difference": "Exact demo center list; NATION indices 0..15 become ZK indices 2..17. Protocol p.57 confirms example indices 0,7,15."
+    },
+    {
+      "nation_band": 1,
+      "label": "Gb840_845",
+      "envelope_khz": [
+        840625,
+        844375
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 840625,
+          "channel_count": 16,
+          "spacing_khz": 250
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 8,
+        "min_channel": 2,
+        "max_channel": 17
+      },
+      "centers": {
+        "start_frequency_khz": 840625,
+        "channel_count": 16,
+        "spacing_khz": 250
+      },
+      "difference": "Exact demo center list; NATION indices 0..15 become ZK indices 2..17."
+    },
+    {
+      "nation_band": 2,
+      "label": "Gb840_845_920_925",
+      "envelope_khz": [
+        840625,
+        924375
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 840625,
+          "channel_count": 16,
+          "spacing_khz": 250
+        },
+        {
+          "start_frequency_khz": 920625,
+          "channel_count": 16,
+          "spacing_khz": 250
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Two separated segments; no single native range or uniform Custom Region represents all 32 centers."
+    },
+    {
+      "nation_band": 3,
+      "label": "FCC902_928",
+      "envelope_khz": [
+        902750,
+        927250
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 902750,
+          "channel_count": 50,
+          "spacing_khz": 500
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 2,
+        "min_channel": 0,
+        "max_channel": 49
+      },
+      "centers": {
+        "start_frequency_khz": 902750,
+        "channel_count": 50,
+        "spacing_khz": 500
+      },
+      "difference": "Exact 50-center demo grid; matching centers does not establish the same hopping algorithm."
+    },
+    {
+      "nation_band": 4,
+      "label": "ETSI866_868",
+      "envelope_khz": [
+        865700,
+        868100
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 865700,
+          "channel_count": 5,
+          "spacing_khz": 600
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Demo generates FIVE centers including 865.7 and 868.1 MHz. ZK band 9 has only four; Custom Region cannot encode 600 kHz. No exact whole-band mapping; explicitly review a reduced subset if intended."
+    },
+    {
+      "nation_band": 5,
+      "label": "JP916_8_920_4",
+      "envelope_khz": [
+        916800,
+        920400
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 916800,
+          "channel_count": 4,
+          "spacing_khz": 1200
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 31,
+        "min_channel": 0,
+        "max_channel": 3
+      },
+      "centers": {
+        "start_frequency_khz": 916800,
+        "channel_count": 4,
+        "spacing_khz": 1200
+      },
+      "difference": "Exact demo center list. Preserve native 1200 kHz spacing; Custom Region cannot encode it."
+    },
+    {
+      "nation_band": 6,
+      "label": "TW922_25_927_75",
+      "envelope_khz": [
+        922250,
+        927750
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 922250,
+          "channel_count": 12,
+          "spacing_khz": 500
+        }
+      ],
+      "kind": "custom",
+      "region": null,
+      "centers": {
+        "start_frequency_khz": 922250,
+        "channel_count": 12,
+        "spacing_khz": 500
+      },
+      "difference": "Exact 12-center demo grid via Custom Region. ZK band 17 ends at 927.25 MHz, so it cannot represent the last channel."
+    },
+    {
+      "nation_band": 7,
+      "label": "ID923_125_925_125",
+      "envelope_khz": [
+        923125,
+        925125
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 923125,
+          "channel_count": 9,
+          "spacing_khz": 250
+        }
+      ],
+      "kind": "custom",
+      "region": null,
+      "centers": {
+        "start_frequency_khz": 923125,
+        "channel_count": 9,
+        "spacing_khz": 250
+      },
+      "difference": "Exact nine-center demo grid at 250 kHz. Five centers at 500 kHz would omit four selected channels."
+    },
+    {
+      "nation_band": 8,
+      "label": "RUS866_6_867_4",
+      "envelope_khz": [
+        866600,
+        867400
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 866600,
+          "channel_count": 5,
+          "spacing_khz": 200
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Demo uses five channels at 200 kHz. Custom Region requires multiples of 125 kHz and no current native grid matches; do not substitute 250 kHz."
+    },
+    {
+      "nation_band": 9,
+      "label": "TEST802_75_998_75",
+      "envelope_khz": [
+        802750,
+        998750
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 802750,
+          "channel_count": 197,
+          "spacing_khz": 1000
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Demo TEST grid has 197 channels and spans 802.75-998.75 MHz. It exceeds Custom Region count 61 and is not a deployment preset."
+    },
+    {
+      "nation_band": 10,
+      "label": "JPLBT_916_8_920_8",
+      "envelope_khz": [
+        916800,
+        920800
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 916800,
+          "channel_count": 4,
+          "spacing_khz": 1200
+        },
+        {
+          "start_frequency_khz": 920600,
+          "channel_count": 2,
+          "spacing_khz": 200
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Six demo centers in two segments; no exact current native/custom mapping. A frequency list alone cannot reproduce LBT behavior."
+    },
+    {
+      "nation_band": 11,
+      "label": "AUS_918_25_925_75",
+      "envelope_khz": [
+        918250,
+        925750
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 918250,
+          "channel_count": 16,
+          "spacing_khz": 500
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 26,
+        "min_channel": 4,
+        "max_channel": 19
+      },
+      "centers": {
+        "start_frequency_khz": 918250,
+        "channel_count": 16,
+        "spacing_khz": 500
+      },
+      "difference": "Exact demo center list using a subset of native band 26; same grid also appears under other native IDs. This is a center match, not a region-name equivalence."
+    },
+    {
+      "nation_band": 12,
+      "label": "KR_917_923_5",
+      "envelope_khz": [
+        917100,
+        923300
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 917100,
+          "channel_count": 32,
+          "spacing_khz": 200
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 3,
+        "min_channel": 0,
+        "max_channel": 31
+      },
+      "centers": {
+        "start_frequency_khz": 917100,
+        "channel_count": 32,
+        "spacing_khz": 200
+      },
+      "difference": "Exact 32-center demo grid with native 200 kHz spacing; the demo label upper bound is not a center."
+    },
+    {
+      "nation_band": 13,
+      "label": "RUS1_866_3_867_5",
+      "envelope_khz": [
+        866300,
+        867500
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 866300,
+          "channel_count": 3,
+          "spacing_khz": 600
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 9,
+        "min_channel": 1,
+        "max_channel": 3
+      },
+      "centers": {
+        "start_frequency_khz": 866300,
+        "channel_count": 3,
+        "spacing_khz": 600
+      },
+      "difference": "Exact three-center demo grid. Demo Set Frequency remaps list positions to wire indices 1,4,7; do not copy those indices into ZK."
+    },
+    {
+      "nation_band": 14,
+      "label": "TL_910_1_914_1",
+      "envelope_khz": [
+        910100,
+        914100
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 910100,
+          "channel_count": 3,
+          "spacing_khz": 2000
+        }
+      ],
+      "kind": "custom",
+      "region": null,
+      "centers": {
+        "start_frequency_khz": 910100,
+        "channel_count": 3,
+        "spacing_khz": 2000
+      },
+      "difference": "Exact three-center demo grid via Custom Region; firmware/channel acceptance still requires readback."
+    },
+    {
+      "nation_band": 15,
+      "label": "CN4920_925",
+      "envelope_khz": [
+        920125,
+        924875
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 920125,
+          "channel_count": 20,
+          "spacing_khz": 250
+        }
+      ],
+      "kind": "native",
+      "region": {
+        "band": 1,
+        "min_channel": 0,
+        "max_channel": 19
+      },
+      "centers": {
+        "start_frequency_khz": 920125,
+        "channel_count": 20,
+        "spacing_khz": 250
+      },
+      "difference": "Exact full 20-center demo grid; distinct from NATION band 0, which starts two native channels later."
+    },
+    {
+      "nation_band": 16,
+      "label": "JPLBTLP_916_923",
+      "envelope_khz": [
+        916800,
+        923000
+      ],
+      "source_segments": [
+        {
+          "start_frequency_khz": 916800,
+          "channel_count": 1,
+          "spacing_khz": 0
+        },
+        {
+          "start_frequency_khz": 918000,
+          "channel_count": 1,
+          "spacing_khz": 0
+        },
+        {
+          "start_frequency_khz": 919200,
+          "channel_count": 1,
+          "spacing_khz": 0
+        },
+        {
+          "start_frequency_khz": 920400,
+          "channel_count": 14,
+          "spacing_khz": 200
+        }
+      ],
+      "kind": "unsupported",
+      "region": null,
+      "centers": null,
+      "difference": "Seventeen demo centers with mixed 1200/200 kHz gaps; not one uniform custom plan. LBT behavior is not established by matching centers."
+    }
+  ],
+  "greader_039_baseband_speeds": [
+    {
+      "nation_speed": 0,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 40,
+      "encoding": "FM0",
+      "zk_profile_id": 205,
+      "difference": "50 instead of 40 kHz (+25%); Tari 20 instead of 25 us. Lowest known FM0 BLF; no throughput-equivalence claim."
+    },
+    {
+      "nation_speed": 1,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 250,
+      "encoding": "Miller4",
+      "zk_profile_id": 146,
+      "difference": "Same BLF and encoding; Tari 20 instead of 25 us. PIE/modulation equivalence remains unknown."
+    },
+    {
+      "nation_speed": 2,
+      "nation_tari_us": 25,
+      "nation_blf_khz": 300,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "320 instead of 300 kHz (+6.67%); Tari 20 instead of 25 us."
+    },
+    {
+      "nation_speed": 3,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 400,
+      "encoding": "FM0",
+      "zk_profile_id": 203,
+      "difference": "426 instead of 400 kHz (+6.5%); Tari 12.5 instead of 6.25 us. Alternative 104 preserves Tari but uses 320 kHz (-20%)."
+    },
+    {
+      "nation_speed": 4,
+      "nation_tari_us": 20,
+      "nation_blf_khz": 320,
+      "encoding": "Miller2",
+      "zk_profile_id": 123,
+      "difference": "Same displayed Tari, encoding and BLF; modulation/PIE and RF performance are not established. Conflicts with protocol/Nextwaves speed 4."
+    },
+    {
+      "nation_speed": 5,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 640,
+      "encoding": "FM0",
+      "zk_profile_id": 103,
+      "difference": "Same displayed Tari, encoding and BLF; modulation/PIE and RF performance are not established."
+    },
+    {
+      "nation_speed": 6,
+      "nation_tari_us": 20,
+      "nation_blf_khz": 320,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "Same displayed Tari, encoding and BLF. Use one explicit ZK profile ID; 141/241 are not proven firmware aliases."
+    },
+    {
+      "nation_speed": 7,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 400,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "320 instead of 400 kHz (-20%); Tari 20 instead of 6.25 us. Preserve encoding, then closest BLF; no timing-equivalence claim."
+    },
+    {
+      "nation_speed": 10,
+      "nation_tari_us": 12.5,
+      "nation_blf_khz": 250,
+      "encoding": "Miller4",
+      "zk_profile_id": 146,
+      "difference": "Same encoding and BLF; Tari 20 instead of 12.5 us."
+    },
+    {
+      "nation_speed": 11,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 250,
+      "encoding": "Miller4",
+      "zk_profile_id": 146,
+      "difference": "Same encoding and BLF; Tari 20 instead of 6.25 us."
+    },
+    {
+      "nation_speed": 12,
+      "nation_tari_us": 12.5,
+      "nation_blf_khz": 300,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "320 instead of 300 kHz (+6.67%); Tari 20 instead of 12.5 us."
+    },
+    {
+      "nation_speed": 13,
+      "nation_tari_us": 6.25,
+      "nation_blf_khz": 300,
+      "encoding": "Miller4",
+      "zk_profile_id": 141,
+      "difference": "320 instead of 300 kHz (+6.67%); Tari 20 instead of 6.25 us."
+    },
+    {
+      "nation_speed": 255,
+      "nation_tari_us": null,
+      "nation_blf_khz": null,
+      "encoding": null,
+      "zk_profile_id": null,
+      "difference": "Keep the current ZK profile and expose its ID. This does not emulate NATION automatic setup; require a manual preset if automatic behavior is essential."
+    }
+  ],
+  "frequency_source": "GReaderTool 0.39.0.0 FrmBaseDialog.InitFrequency / ItemFrequencyRangeAdd; display centers, not N701 hardware validation. See vendor_reference.md."
+}

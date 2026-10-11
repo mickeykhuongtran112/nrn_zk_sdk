@@ -2,6 +2,69 @@
 
 ## Unreleased
 
+- End repeating Answer/FastID sessions on terminal device errors, including antenna
+  error 0xF8. Preserve queued tags and the error status through Stop and browser cleanup.
+- Retain acknowledged Set results when browser configuration read-back fails or
+  throws; report partial/unknown verification without retrying saved writes.
+- Apply approved GReaderTool 0.39 speed and full-region mappings in the optional
+  adapter and browser service, with read-back; keep generic profile presets gated.
+- Use saved antenna configuration for the NATION UI, with explicit Set/read-back
+  and no repeated saved writes at Start. Native volatile APIs remain available.
+- Map EPC+TID to Answer FastID. Add native `antenna_sequence` for ordered repeating
+  Answer rounds across selected ports; incompatible tags may report EPC only.
+- Serialize Start/Stop/close so Stop during Start's Work Mode check cannot leave
+  a new stream running. Preserve cancellation-safe cleanup.
+- Retain browser session outcomes after automatic Stop, including queue loss,
+  final reports and restoration failures; emit the resulting state and outcome.
+- Add Scenario `antenna_mask` through the native SDK, browser bridge and NATION
+  adapter. Selected ports share one native Start, with mask read-back and restoration.
+- Keep Stop incomplete when the reader is unknown and no session remains; do not
+  report idle after a lost Start ACK or a failed Stop.
+- Propagate `NationAdapter.run_inventory()` callback timeouts after Stop/restore;
+  only expiry of the requested run duration is normal completion.
+- Cover four-port selection, mask restoration, individual power updates and
+  enable/disable operations in regressions and integration examples. RF mapping
+  choices are unchanged. Four-port hardware validation is pending.
+
+- Reconcile NATION mapping proposals with the supplied protocol and GReaderTool
+  0.39: separate speed-code dialects, preserve exact demo channel lists, and mark
+  unrepresentable plans and reference-command conflicts. Runtime is unchanged.
+
+- Move NATION value conversions and the optional async adapter to
+  `mapping/nation_to_zk`; native ZK operations and adapter behavior are unchanged.
+  Import adapter types from `mapping.nation_to_zk` instead of `zk_rfid`.
+- Add a complete pinned-reference API/command map, browser migration guide and
+  review-only RF choices. These proposals do not change active adapter mappings.
+
+- Set all connection defaults to 115200 baud; other supported rates remain selectable.
+- Settle and verify direct transitions to Answer before accepting another session.
+  Finalize failed Answer interrupts so queued reports remain drainable.
+- Add Custom Region set/get, typed native/custom region reads, and Web Serial methods.
+  Channel plans remain application-owned; writes default to volatile.
+
+- Check Work Mode before Answer/Scenario inventory and reject incompatible
+  autonomous modes before scan commands or Scenario configuration writes.
+- Add `persist` to Work Mode setters, defaulting to `False`. Managed Real-time
+  Start/Stop uses temporary changes; use `persist=True` to change boot behavior.
+- Settle Stop boundaries, retain bounded post-ACK diagnostics, and verify
+  Real-time returns to Answer. Add `InventorySession.drain()` and preserve queued
+  reports when timed consumers are cancelled.
+- Keep Answer/Scenario as the main paths; document optional autonomous/trigger
+  reading with a separate Real-time example.
+
+- Add CFG16 Range Control get/set with native 0-100 validation, volatile writes
+  by default, raw response preservation, and operator-provided wire regressions.
+- Document Impinj Scan/ScanID options, configuration support, and RF limits.
+- Decode zero-length CFG11 masks as `None`, including all-zero responses; retain
+  raw bytes and strict validation of active masks and outgoing commands.
+- Ignore retained mask-buffer bytes in Real-time `0x77` responses when the mask
+  length is zero; active-mask padding checks remain unchanged.
+- Add optional `ScenarioSession` names for existing CFG9 values; integer inputs
+  and inventory behavior are unchanged.
+- Explain region/channel selection, RF profiles, Scenario configuration ownership,
+  and S-CST limits; add diagrams and a standalone Scenario CLI example.
+- Show phase/frequency and cleanup diagnostics in the Scenario example; return
+  a failing exit status for incomplete sessions.
 - Add JavaScript/TypeScript integration through Web Serial and Pyodide, with a
   static browser example for inventory, configuration, tracing, and verified EPC writes.
 - Preserve native results and errors across the browser bridge; handle fragmented

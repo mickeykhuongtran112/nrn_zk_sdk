@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="330" viewBox="0 0 960 330" role="img" aria-labelledby="title desc">
+  <title id="title">Region and channel indices</title>
+  <desc id="desc">Band 2 starts at 902.75 MHz with 500 kHz spacing. Channel 49 is 927.25 MHz. Selecting channels 10 through 20 includes 11 channels, from 907.75 to 912.75 MHz. Equal minimum and maximum select one channel.</desc>
+  <style>text{font-family:Arial,Helvetica,sans-serif;fill:#172b3a}.title{font-size:28px;font-weight:700}.body{font-size:18px}.label{font-size:18px;font-weight:700}.small{font-size:16px;fill:#465969}.mono{font-family:Consolas,monospace;font-size:18px}</style>
+  <rect width="960" height="330" rx="12" fill="#fff"/>
+  <text x="32" y="44" class="title">A region selects a channel range</text>
+  <text x="32" y="78" class="body">Band 2: base 902.75 MHz + channel index × 0.50 MHz</text>
+  <rect x="234" y="120" width="170" height="60" rx="6" fill="#e4f2fb"/>
+  <text x="319" y="112" text-anchor="middle" class="label">Selected: 10–20</text>
+  <path d="M64 160H896" stroke="#96abbc" stroke-width="4"/>
+  <path d="M234 160H404" stroke="#1670a5" stroke-width="6"/>
+  <path d="M64 148V174 M234 148V174 M404 148V174 M896 148V174" stroke="#172b3a" stroke-width="2"/>
+  <text x="64" y="201" text-anchor="middle" class="label">0</text>
+  <text x="234" y="201" text-anchor="middle" class="label">10</text>
+  <text x="404" y="201" text-anchor="middle" class="label">20</text>
+  <text x="896" y="201" text-anchor="middle" class="label">49</text>
+  <text x="64" y="229" text-anchor="middle" class="small">902.75</text>
+  <text x="234" y="229" text-anchor="middle" class="small">907.75</text>
+  <text x="404" y="229" text-anchor="middle" class="small">912.75</text>
+  <text x="896" y="229" text-anchor="middle" class="small">927.25 MHz</text>
+  <text x="32" y="278" class="mono">Region(2, 10, 20) → 11 channels, both limits included</text>
+  <text x="32" y="308" class="body">One channel: Region(2, 10, 10) → 907.75 MHz</text>
+</svg>

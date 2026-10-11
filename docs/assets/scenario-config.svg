@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="400" viewBox="0 0 960 400" role="img" aria-labelledby="title desc">
+  <title id="title">S-CST configuration</title>
+  <desc id="desc">InventoryConfig selects S-CST through CFG9. Separate CFG31 settings supply three ordered profile slots. The reader firmware executes inventory after Start. This diagram describes configuration inputs, not a switching timeline. CFG31 is not restored by the SDK session.</desc>
+  <style>text{font-family:Arial,Helvetica,sans-serif;fill:#172b3a}.title{font-size:28px;font-weight:700}.label{font-size:20px;font-weight:700}.body{font-size:18px}.small{font-size:16px;fill:#465969}.mono{font-family:Consolas,monospace;font-size:18px}</style>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#617587"/></marker></defs>
+  <rect width="960" height="400" rx="12" fill="#fff"/>
+  <text x="32" y="44" class="title">S-CST has two configuration inputs</text>
+  <rect x="32" y="80" width="472" height="98" rx="8" fill="#e4f2fb" stroke="#96abbc"/>
+  <text x="52" y="110" class="label">CFG9 · selected for this run</text>
+  <text x="52" y="141" class="mono">session = ScenarioSession.S_CST</text>
+  <text x="52" y="163" class="small">Selector 128, plus Q and phase settings</text>
+  <rect x="32" y="198" width="472" height="118" rx="8" fill="#fff1dd" stroke="#96abbc"/>
+  <text x="52" y="229" class="label">CFG31 · configured separately</text>
+  <text x="52" y="261" class="mono">Slot 1: 103   Slot 2: 241   Slot 3: 285</text>
+  <text x="52" y="291" class="small">Example IDs; repeated IDs are also valid</text>
+  <path d="M504 129H568V184H614" fill="none" stroke="#617587" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M504 257H568V226H614" fill="none" stroke="#617587" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="624" y="140" width="304" height="136" rx="8" fill="#e6f3ee" stroke="#96abbc"/>
+  <text x="776" y="175" text-anchor="middle" class="label">Reader firmware</text>
+  <text x="776" y="207" text-anchor="middle" class="body">Start → reports → Stop</text>
+  <text x="776" y="241" text-anchor="middle" class="small">Profile switching is internal</text>
+  <text x="32" y="350" class="body">Configuration inputs, not a switching timeline. Dwell and transition rules are unspecified.</text>
+  <text x="32" y="380" class="body">After confirmed Stop: changed CFG9 is restored; CFG31 remains set.</text>
+</svg>
