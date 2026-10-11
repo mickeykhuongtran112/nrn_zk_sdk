@@ -1,5 +1,17 @@
 # Xác minh SDK — 0.2.0.dev1
 
+## Web Serial integration — 2026-10-11
+
+- JavaScript → Web Serial → Pyodide bridge uses the unchanged `src/zk_rfid.py`. The Python wheel still contains one SDK source file; the source distribution also includes browser assets and examples.
+- CPython: **180 passed, 6 hardware tests deselected**. Browser argument conversion matches all 72 operations exposed by the Python test console.
+- Node: **6 existing demo client tests + 4 Web Serial tests passed**. The Web Serial suite loads real Pyodide 314.0.7 and uses Web Streams with byte-fragmented responses from the Python simulator. It checks single ownership, periodic event-loop yielding, native F9 / FC-04 / partial-13 results, phase/RSSI, EPC readback, timeout without write retries, disconnect, USB loss and explicit recovery.
+- Browser: the static example loads the pinned CDN runtime and canonical SDK. In the test-only `/tests/browser/webserial_smoke.html`, the production UI completed Answer (406 reports) and Scenario (38 reports), Stop with zero drops, tag selection, EPC write with `read_back_verified`, and Disconnect with no fault. The final posted-task yield was rechecked in another Answer run (388 reports, zero drops, responsive Stop and clean Disconnect). This fixes the microtask loop that initially blocked UI input under immediate simulated replies. Physical Web Serial / COM hardware has **not** been validated in this change.
+- Ruff, JavaScript syntax, TypeScript declarations and package contents checks pass. Source archive excludes local plans, private manuals and runtime downloads.
+
+Run `node --test tests/browser/webserial.test.mjs` after installing Pyodide as shown in [browser checks](../tests/browser/README.md). Integration instructions are in [web/README.md](../web/README.md).
+
+## Earlier SDK validation
+
 Đợt gộp ngày 2026-10-09 dùng file nguồn duy nhất `src/zk_rfid.py`. Kiểm thử lại CPython/Pyodide và đóng gói; không gửi lệnh phần cứng mới. Phiên COM13 mô tả dưới đây là chứng cứ của bản `0.1.0.dev1` trước khi gộp. Đối chiếu AST khi chuyển cấu trúc giữ nguyên 161 class/function cấp module và toàn bộ method body, ngoại trừ thông báo hướng dẫn cài pyserial.
 Ngày 2026-10-09; cập nhật đợt GUI/observability và kiểm tra live trên module thật. Ngoài simulator và ảnh3hardwaretestsPASS của người dùng, agent đã chạy một phiên Scenario/phase trên COM13/115200/1-port, kiểm tra RSSI mapping/live/counter và Stop. Không ghi memory tag; kết quả giới hạn ở phiên đọc này, chưa nghiệm thu RF/toàn bộ API. Xem [biên bản kiểm tra](hardware_live_view_check.md).
 

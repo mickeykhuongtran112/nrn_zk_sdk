@@ -42,7 +42,17 @@ Set `antenna_ports=4` for a four-port module, then select `antenna=1` through `4
 
 Use `ZKReader` methods for device I/O. For custom transports or Pyodide, implement `AsyncTransport` instead of using `SerialTransport`.
 
-## Run the web demo
+## Browser / Web Serial
+
+Use [web/zk-rfid-webserial.js](web/README.md) from JavaScript or TypeScript. It runs the same `zk_rfid.py` in Pyodide and connects directly through Web Serial, with tag events and native command results.
+
+```sh
+python -m http.server 8000 --bind 127.0.0.1
+```
+
+Open [localhost:8000/examples/webserial/](http://localhost:8000/examples/webserial/) in Chrome or Edge. Select **115200**, **1** or **4** antenna ports, then **Connect** and choose COM13. Python only serves static files; no SDK backend runs. See the [example](examples/webserial/README.md) for inventory and automatic-PC EPC writes.
+
+## Python web test console
 
 From the repository root, in Windows CMD:
 

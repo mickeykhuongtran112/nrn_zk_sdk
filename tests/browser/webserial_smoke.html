@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZK Web Serial · simulator smoke test</title>
+<link rel="stylesheet" href="../../examples/webserial/style.css"></head>
+<body><p>Loading the browser test fixture. No hardware is used.</p>
+<script type="module">
+import { createZKReader } from "../../web/zk-rfid-webserial.js";
+
+// Test-only SerialPort using real Web Streams. Production assets never import it.
+const port = {
+  async open() {
+    this.readable = new ReadableStream({ start: controller => { this.rx = controller; } });
+    this.writable = new WritableStream({ write: bytes => peerWrite(bytes) });
+  },
+  async close() {
+    if (this.readable.locked || this.writable.locked) throw new Error("Leaked stream lock");
+  },
+  feed(bytes) { this.rx.enqueue(Uint8Array.from(bytes)); },
+};
+const fixture = createZKReader();
+await fixture.initialize();
+const pyodide = fixture.pyodide;
+pyodide.FS.writeFile("/zk_web/test_simulator.py", await (await fetch("../demo_app/simulator.py")).text());
+pyodide.globals.set("test_port", port);
+await pyodide.runPythonAsync(`
+import asyncio
+from pyodide.ffi import to_js
+from test_simulator import DemoTransport
+peer = DemoTransport(4)
+await peer.open()
+async def peer_write(data):
+    return await peer.write(bytes(data.to_py()))
+async def feed_rx():
+    while True:
+        chunk = await peer.read()
+        for offset in range(0, len(chunk), 3):
+            test_port.feed(to_js(chunk[offset:offset + 3]))
+rx_pump = asyncio.create_task(feed_rx())
+`);
+const peerWrite = pyodide.globals.get("peer_write");
+Object.defineProperty(navigator, "serial", { configurable: true, value: { requestPort: async () => port } });
+const template = new DOMParser().parseFromString(await (await fetch("../../examples/webserial/index.html")).text(), "text/html");
+template.querySelectorAll("script").forEach(script => script.remove());
+document.body.replaceChildren(...template.body.children);
+document.querySelector("h1").textContent = "Web Serial · SIMULATOR ONLY";
+document.querySelector("footer").textContent = "Test fixture: real Pyodide + simulated 4-port reader. No COM port is opened.";
+document.querySelector("#ports").value = "4";
+await import("../../examples/webserial/main.js");
+document.querySelector("#ports").dispatchEvent(new Event("change"));
+</script></body>
+</html>

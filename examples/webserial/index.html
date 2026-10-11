@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZK RFID · Web Serial</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <header><div><p class="eyebrow">ZK RFID SDK / BROWSER EXAMPLE</p><h1>Web Serial reader</h1>
+    <p>Connect a reader, inventory tags, and write an EPC.</p></div>
+    <span id="state" class="badge" role="status">Loading SDK…</span></header>
+  <p id="notice" role="status">Loading the Python SDK in your browser. The first load may take a moment.</p>
+  <section class="card" aria-labelledby="connectionTitle">
+    <h2 id="connectionTitle">Connection</h2>
+    <div class="connection-grid">
+      <label>Baud rate<select id="baud"><option>115200</option><option>57600</option><option>38400</option><option>19200</option><option>9600</option></select></label>
+      <label>Antenna ports<select id="ports"><option>1</option><option>4</option></select></label>
+      <label>Reader address<input id="address" type="number" min="0" max="254" value="0"></label>
+      <button id="connect" class="primary" disabled>Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+    </div>
+    <div class="connection-note"><label class="check"><input id="recover" type="checkbox"> Module reset / clean connection confirmed</label><small>For recovery after a timeout or unplug. Choose the COM port in the browser dialog.</small></div>
+  </section>
+  <div class="workspace">
+    <section class="card" aria-labelledby="inventoryTitle">
+      <h2 id="inventoryTitle">Inventory</h2>
+      <div class="fields"><label>Mode<select id="mode"><option value="scenario">Scenario</option><option value="answer">Answer</option></select></label>
+        <label>Antenna<select id="antenna"><option>1</option></select></label>
+        <label class="check"><input id="phase" type="checkbox" checked> Include phase</label></div>
+      <div class="actions"><button id="start" class="primary" disabled>Start reading</button><button id="stop" disabled>Stop</button><button id="once" disabled>Read once</button></div>
+      <p class="hint">One antenna per session. Stop before changing antenna or writing a tag.</p>
+      <hr><div class="fields"><label>RF power · dBm<input id="power" type="number" value="20" min="0" max="30"></label>
+        <button id="getPower" disabled>Get power</button><button id="setPower" disabled>Set power</button></div>
+      <div class="actions"><button id="info" disabled>Reader info</button><button id="region" disabled>Region</button><button id="profile" disabled>RF profile</button></div>
+    </section>
+    <section class="card" aria-labelledby="writeTitle">
+      <h2 id="writeTitle">Write EPC <span class="subtle">Automatic PC</span></h2>
+      <label>Current EPC<input id="targetEpc" autocomplete="off" spellcheck="false" placeholder="Click a tag below or enter its current EPC"></label>
+      <label>New EPC<input id="newEpc" autocomplete="off" spellcheck="false" placeholder="E2801111222233334444555566667777"></label>
+      <div class="fields"><label>Access password<input id="password" value="00000000" autocomplete="off" spellcheck="false" maxlength="8"></label>
+        <label class="check"><input id="allowWrite" type="checkbox"> Enable this tag write</label></div>
+      <button id="write" class="primary" disabled>Write and verify</button>
+      <p class="hint">Uses the selected antenna. Reads PC, updates EPC length, writes PC + EPC, then verifies using the new EPC.</p>
+    </section>
+  </div>
+  <section class="card tags" aria-labelledby="tagsTitle">
+    <div class="section-heading"><h2 id="tagsTitle">Tag observations</h2><span><b id="total">0</b> reads · <b id="unique">0</b> entries</span><button id="clear">Clear view</button></div>
+    <div class="table-scroll"><table><thead><tr><th>EPC / TID</th><th>ANT</th><th>Reads</th><th>RSSI raw</th><th>RSSI dBm*</th><th>Phase begin / end °</th></tr></thead><tbody id="tags"><tr><td colspan="6" class="empty">No reports yet. Connect and start reading.</td></tr></tbody></table></div>
+    <p class="hint">* User mapping: raw − 135. Phase follows the Ex10 demo convention. Up to 1,000 entries are displayed.</p>
+  </section>
+  <div class="workspace">
+    <section class="card"><h2>Command result</h2><pre id="result" aria-live="polite">No command sent.</pre></section>
+    <section class="card"><div class="section-heading"><h2>Transaction log</h2><label class="check"><input id="trace" type="checkbox"> Show TX / RX trace</label></div><pre id="log">Ready for connection.</pre></section>
+  </div>
+  <footer>Web Serial → Pyodide → zk_rfid.py · <a href="./README.md">Integration example</a> · <a href="../../web/README.md">JavaScript API</a></footer>
+</main>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 include README.md CHANGELOG.md LICENSE pyproject.toml MANIFEST.in
 include src/zk_rfid.py
 recursive-include docs *.md *.json
-recursive-include examples *.py
+recursive-include examples *.py *.html *.css *.js *.md
+recursive-include web *.py *.js *.ts *.md
 recursive-include tools *.py
 recursive-include tests *.py *.md *.mjs *.cjs *.html *.css *.js
 recursive-include fixtures *.md *.json *.hex

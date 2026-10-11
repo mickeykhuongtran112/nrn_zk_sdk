@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Add a JavaScript/TypeScript Web Serial bridge using the canonical `src/zk_rfid.py` in Pyodide, plus a static browser example for inventory, configuration, tracing and verified EPC writes.
+- Preserve native results and errors through the JSON boundary; test stream ownership, fragmented RX, disconnect and recovery with real Pyodide and a simulated reader.
+
 ## 0.2.0.dev1 — 2026-10-09
 - Gộp implementation thành một file nguồn `src/zk_rfid.py`: native API, types/errors, CRC/parser/status, command builders/decoders, async/serial transport, dispatcher, inventory và NationAdapter. Không cần generator hoặc package SDK phụ khi copy tích hợp.
 - Giữ 74 method + 3 property của ZKReader, command bytes, response/error/confirmation, single RX, trace, RSSI và phase. Cập nhật demo, tools, examples, catalog và Pyodide dùng cùng file.
