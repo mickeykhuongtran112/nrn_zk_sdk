@@ -1,93 +1,86 @@
-# Xác minh SDK — 0.2.0.dev1
+# Validation
 
-## Web Serial integration — 2026-10-11
+Software checks and physical-reader observations have different scopes. Passing
+the software suite does not qualify every model, firmware revision, tag chip, or
+RF environment.
 
-- JavaScript → Web Serial → Pyodide bridge uses the unchanged `src/zk_rfid.py`. The Python wheel still contains one SDK source file; the source distribution also includes browser assets and examples.
-- CPython: **180 passed, 6 hardware tests deselected**. Browser argument conversion matches all 72 operations exposed by the Python test console.
-- Node: **6 existing demo client tests + 4 Web Serial tests passed**. The Web Serial suite loads real Pyodide 314.0.7 and uses Web Streams with byte-fragmented responses from the Python simulator. It checks single ownership, periodic event-loop yielding, native F9 / FC-04 / partial-13 results, phase/RSSI, EPC readback, timeout without write retries, disconnect, USB loss and explicit recovery.
-- Browser: the static example loads the pinned CDN runtime and canonical SDK. In the test-only `/tests/browser/webserial_smoke.html`, the production UI completed Answer (406 reports) and Scenario (38 reports), Stop with zero drops, tag selection, EPC write with `read_back_verified`, and Disconnect with no fault. The final posted-task yield was rechecked in another Answer run (388 reports, zero drops, responsive Stop and clean Disconnect). This fixes the microtask loop that initially blocked UI input under immediate simulated replies. Physical Web Serial / COM hardware has **not** been validated in this change.
-- Ruff, JavaScript syntax, TypeScript declarations and package contents checks pass. Source archive excludes local plans, private manuals and runtime downloads.
+## Software checks
 
-Run `node --test tests/browser/webserial.test.mjs` after installing Pyodide as shown in [browser checks](../tests/browser/README.md). Integration instructions are in [web/README.md](../web/README.md).
+The release audit on 2026-10-11 used CPython 3.14.6 on Windows: **184 passed,
+6 hardware tests deselected**. Node 24.16.0 passed **10 tests** across the console client
+and Web Serial bridge. The real Pyodide 314.0.7 runtime (Python 3.14.2) passed the
+shared harness with eight TX vectors, 2,000 fragmented frames, read-back,
+cancellation, and zero leaked tasks.
 
-## Earlier SDK validation
+The suite covers:
 
-Đợt gộp ngày 2026-10-09 dùng file nguồn duy nhất `src/zk_rfid.py`. Kiểm thử lại CPython/Pyodide và đóng gói; không gửi lệnh phần cứng mới. Phiên COM13 mô tả dưới đây là chứng cứ của bản `0.1.0.dev1` trước khi gộp. Đối chiếu AST khi chuyển cấu trúc giữ nguyên 161 class/function cấp module và toàn bộ method body, ngoại trừ thông báo hướng dẫn cài pyserial.
-Ngày 2026-10-09; cập nhật đợt GUI/observability và kiểm tra live trên module thật. Ngoài simulator và ảnh3hardwaretestsPASS của người dùng, agent đã chạy một phiên Scenario/phase trên COM13/115200/1-port, kiểm tra RSSI mapping/live/counter và Stop. Không ghi memory tag; kết quả giới hạn ở phiên đọc này, chưa nghiệm thu RF/toàn bộ API. Xem [biên bản kiểm tra](hardware_live_view_check.md).
+- CRC, framing, chunk boundaries, malformed data, and bounded parser recovery.
+- Single RX ownership, serialized commands, response matching, short writes,
+  timeouts, cancellation, EOF, and recovery gates.
+- Native results, persistence failure, nested tag errors, and malformed success payloads.
+- Inventory completion, statistics, FastID/TID/Mix, Scenario restore,
+  Real-time mode, stop semantics, late reports, and queue overflow.
+- Memory bounds, EPC/PC preservation, changed targets/passwords, read-back,
+  partial verification, and uncertain writes without retries.
+- Standalone imports without site packages, wheel installation, and the shared
+  CPython/Pyodide implementation.
+- Console forms, simulation, live-stream recovery, exports, and browser transport lifecycle.
 
-## Kết quả thực tế
+The release audit also checks tracked/ignored paths, English content, local links,
+common secret patterns, MIT metadata, and wheel/source contents. The wheel was
+installed in a fresh environment without runtime dependencies and passed the
+shared harness. README and memory examples were executed against the byte-level
+simulator. No protocol behavior was changed by the documentation rewrite.
 
-| Kiểm tra | Môi trường / kết quả |
-|---|---|
-| Unit/integration/compat/runtime | CPython 3.14.6, Windows; 177 passed, 6 hardware tests deselected; gồm file độc lập, live stream/phase, RSSI mapping và HTTP assets giữ nguyên theo phiên |
-| Demo client regression | Node: 6 passed; legacy404 fallback, reconnect, snapshot đến muộn, selection/clear/generation và lỗiHTTP non-JSON |
-| Hardware live view | COM13/115200/1-port, Scenario có phase: 7.594 reports, 14 ID/antenna entries; Stop success, dropped=0. Cửa sổ HTTP khoảng3giây: 74 updates, median40,21ms; UI và CSV có RSSI dBm/phase |
-| Ruff check / format | Pass trên src, tests, tools, examples |
-| Symbol catalogue | 74 method + 3 property của ZKReader; 411 symbol trong file SDK; hợp nhất 3 khai báo TypeVar T thành 1, không bỏ API chức năng; sinh AST và --check |
-| Pyodide thực | npm pyodide314.0.7, Python3.14.2/Emscripten; cùng8vector,2000fragmentedRXframes; inventory/read-back/cancellation pass,0leakedtasks |
-| NATION comparator | 3 pass (hex, power dictionary, expected ZK TX),0fail,2unverified (RF profile/RSSI) |
-| Package build | Wheel py3-none-any và sdist build thành công |
-| Copy file độc lập | Python -I -S ở thư mục tạm, chỉ có zk_rfid.py và dữ liệu/harness kiểm thử; 8 vectors, 2000 frames, type hints/pickle/cancellation; không site-packages hoặc module SDK con |
-| Cài wheel độc lập | Venv mới, --no-deps; import zk_rfid.py và chạy runtime harness mà không cài pyserial/nrn |
-| Contents audit | Wheel chỉ có zk_rfid.py và metadata; không package con/manual/DLL/local_data/dữ liệu riêng/nrn.py. Sdist có tests và reference NATION + license để chạy baseline hash tests |
-| GUI catalogue/API | 72 thao tác + Connect/Disconnect, typed arguments, target/write guards, loopback/token/origin, job/error/recovery được kiểm thử |
-| Observability | Correlation request/chunk/frame/result; observer exception; timeout UNKNOWN; bounded JSONL/CSV |
-| CLI smoke | Tất cả examples và tools --help chạy được mà không mở phần cứng |
+[CONTRIBUTING.md](../CONTRIBUTING.md) lists reproducible commands. CI is configured
+for Python 3.11/3.14 and Node 22. The local results above do not imply that the
+remote workflow or every supported Python/OS combination has been exercised.
 
-CI workflow dành cho Python3.11/3.14 và Pyodide. Run GitHub của commit đầu bị chặn trước khi chạy job do billing của tài khoản; các kết quả trong bảng được kiểm chứng tại môi trường local. Minimum3.11 là contract package; môi trường local được chạy ở3.14.6. Không suy ra mọi OS/browser đã verified.
+## Hardware coverage
 
-## Những hành vi đã kiểm thử
+| Record | Coverage | Limit |
+|---|---|---|
+| [2026-10-09 session](hardware_live_view_check.md) | One-port Scenario, phase/RSSI display, counters, stop; 7,594 reports | Exact model/firmware and tag population absent from the retained summary |
+| Three reported hardware tests, 2026-10-09 | Reader info/power, region/profile, Answer round | Reported screenshots; no published raw capture |
 
-- CRC8goldenTX độc lập và check6F91; parser mọi điểm chia chunk, nhiều frame, noise/CRC/bounded recovery.
-- Pending trướcTX, immediate response, một RX duy nhất khi gọi đồng thời, short writes, wrong address, broadcast, stale reply, EOF, cancel/timeout và resync gate.
-- Native statuses, FC nested tag errors, persistence13partial, payload thành công sai length không false success.
-- Answer multi-frame/statistics/no-tag/device-timeout; FastID/TID/phase; Mix sequence/thiếu memory; Scenario snapshot/restore, report trướcstartACK và saustopACK, queue overflow.
-- Real-time command whitelist/heartbeat;93 không ACK và không deadlock; stop51 theoACK.
-- Word/bit/address/payload bounds; write/read-back/mismatch; PC bảo toàn11bit; target trước/sauEPC/password; hủy verify vẫn giữACK, không retrywrite.
-- Deadline toàn chuỗi và chờlock; buffer counts/multi-frame/partial/cancel.
-- NATION baseline source/LICENSE hash; adapter power giữ port khác và bảo toàn native error; không suy đoánRF.
-- GUI: simulated native config/inventory/Scenario restore/read-back; F9, FC/04, 13, host timeout; recovery gate theo cổng tồn tại qua phiên simulator; direct working-mode stop/disconnect.
-- GUI tag recovery: kiểm tra read-only server8765 cũ (`/api/live`404, snapshot25dòng/8.375reports); frontend sửa đã hiển thị lại25dòng. Server mới8766 với simulator hiển thịlive, raw85→−50dBm, phase22.272°/44.544° hoặc256/512; chọn target giữ qua cập nhật. Không gửi lệnh tới COM13 trong đợt này.
-- Core không import serial/threading/OS/subprocess; runtime lifecycle đóng sạch trong harness hữu hạn.
+The session predates the single-file consolidation. No new hardware session was
+run for the documentation/release audit. Physical Web Serial remains unvalidated.
+Historical DLL loopback vectors are documented fixtures, not new RF captures.
 
-Bộ tests không phải exhaustive cho mọi model/firmware/CRC-collision/timing. Fixture RX/state peer là synthetic; goldenTX có nguồn historicalDLLloopback, không được gọi là hardwarecapture mới.
+Further qualification needs model/firmware-specific traces, memory read-back on
+the intended tag, persistence across power cycles, stop/late-report timing,
+CFG25/29 dialects, and 16-port layouts. Use the [RF benchmark](inventory_benchmark.md)
+to assess completeness, stray reads, latency, and repeatability.
 
-## Chạy lại
+## Hardware tests
 
-```powershell
-python -m pip install -e ".[dev,serial]"
-python -m ruff check src tests tools examples
-python -m ruff format --check src tests tools examples
-python -m pytest -q
-node --test tests/browser/demo_client.test.cjs
-python tools/export_symbols.py --check
-python tools/compare_results.py
-python -m build
-npm install --prefix local_data/pyodide pyodide@314.0.7
-node tests/runtime/run_pyodide.mjs local_data/pyodide/node_modules/pyodide/pyodide.mjs
-```
-
-Không có dependency vào siblingproject/manual/DLL để chạy bộ testCPython. Pyodide được tải riêng cho harness, không phải runtime dependency củawheel.
-
-## Hardware và nghiệm thu còn lại
-
-Mặc định pytest loại markerhardware. Chỉ chạy sau khi chọn cổng, model/firmware và điều kiệnRF:
+Hardware tests are excluded by default. To run reader configuration checks in
+PowerShell, select the actual device explicitly:
 
 ```powershell
-$env:ZK_HARDWARE_PORT = "COM13"
-$env:ZK_ANTENNA_PORTS = "1"
+$env:ZK_HARDWARE_PORT = "COM3"
 $env:ZK_BAUDRATE = "115200"
-$env:ZK_MODEL = "ten-model-thuc"
-$env:ZK_FIRMWARE = "revision-thuc"
+$env:ZK_ANTENNA_PORTS = "1"
+$env:ZK_MODEL = "your-reader-model"
+$env:ZK_FIRMWARE = "your-firmware-revision"
 python -m pytest -m hardware tests/hardware/test_reader_config.py
 ```
 
-Các bài inventory phátRF; Scenario thay cấu hình tạm vàrestore. Test Userwrite còn yêu cầu ZK_ALLOW_TAG_WRITE=1, ZK_TEST_TID và tag thử nghiệm cóUserbank; khôi phục dữ liệu cũ chỉ khi connection còn biết chắc trạng thái. Test suite không tự chạyKill/permanentLock.
+In a POSIX shell, use `export ZK_HARDWARE_PORT=/dev/ttyUSB0` and export the other
+variables before running the same pytest command. The SDK does not load `.env`
+automatically.
 
-Còn phải thu trace model/firmware cụ thể, kiểmpersistence qua mất nguồn, write đúngtag, timingstop/lateEE, errataCFG25/29/16port và benchmarkRF theo [inventory_benchmark.md](inventory_benchmark.md). Không dùng report/s để chứng minh completeness hoặc uniqueEPC để suy sốphysicaltag.
+| Variable | Use / default |
+|---|---|
+| `ZK_HARDWARE_PORT` | Required; no device opened if absent |
+| `ZK_BAUDRATE` | Serial baud; default 57600 |
+| `ZK_ANTENNA_PORTS` | Physical port count; default 1 |
+| `ZK_MODEL`, `ZK_FIRMWARE` | Deployment metadata |
+| `ZK_TEST_TID` | Known scratch-tag TID, hexadecimal |
+| `ZK_ALLOW_TAG_WRITE` | Must be `1` to run the User-memory write test |
+| `ZK_USER_WORD_ADDRESS` | Scratch User word; default 0 |
 
-License phát hành mãZK chưa chọn. Không publish hoặc commit. Xem [ma trận hỗ trợ](supported_devices.md) và [errata](protocol/errata.md) trước nghiệm thu.
-
-## GUI browser smoke (simulator)
-
-Đã thao tác trực tiếp trên browser: kết nối simulator; get_reader_info lặp; FastID hiện EPC/TID; Scenario start/stop về idle; chọn TID, User write và read_back_verified; native FC/04 hiển thị failure/tag_error; export CSV và JSONL được đọc lại kiểm tra. Render/parse JSON thành công cả 72 form, không có lỗi JavaScript trong các luồng đã thử. Bố cục panel hẹp và desktop hai cột được kiểm tra; dữ liệu đều synthetic, không phải capture COM13. Các chức năng phụ thuộc chip/firmware chưa được simulator mô hình hóa không được coi là đã test phần cứng.
+Inventory tests emit RF; Scenario tests temporarily change and restore settings.
+The User-memory test needs a writable tag and attempts to restore the old word
+only while connection state remains known. It does not retry uncertain writes.
+The suite never runs Kill or permanent Lock automatically.

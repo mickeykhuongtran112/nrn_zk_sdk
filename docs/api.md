@@ -1,102 +1,156 @@
-# Public API
+# Python API
 
-Implementation duy nhất: [src/zk_rfid.py](../src/zk_rfid.py). Có thể copy file vào ứng dụng hoặc cài wheel; cả hai dùng cùng API:
+Import the SDK directly from `zk_rfid`. The [API index](functions_implemented.md)
+lists every public method and its signature.
 
 ```python
-from zk_rfid import ZKReader, SerialTransport, InventoryConfig, ReaderCapabilities
-from zk_rfid import TagReport, CommandResult, OperationError, NationAdapter
+from zk_rfid import (
+    InventoryConfig, MemoryBank, OperationError, ReaderCapabilities,
+    SerialTransport, TagMask, TagTarget, ZKReader,
+)
 ```
 
-Bản `0.2.0.dev1` gộp các module cũ vào một file nguồn, không dùng loader hay package nhúng. Đổi `from zk_rfid.<module> import X` thành `from zk_rfid import X`; `ZKReader` giữ tên method, tham số và kết quả. Cấu trúc module Python đã đổi nên pickle chứa đường dẫn class của bản cũ không tương thích; dùng dữ liệu JSON/CSV của ứng dụng để lưu/chuyển kết quả.
+## Connection
 
-`SerialTransport` chỉ import `pyserial` khi `open()`; core không cần dependency ngoài. Các hàm command cấp module (`get_power()`, `read_memory()`, ...) chỉ tạo `Request` để kiểm tra/encode. Thực thi I/O qua `await reader.get_power()`, `await reader.read_memory(...)`, v.v.
+```python
+reader = ZKReader(
+    SerialTransport("COM3", 115200),
+    address=0,
+    capabilities=ReaderCapabilities(antenna_ports=1),
+    timeout=3.0,
+)
 
-Entry point: `ZKReader(transport, address=0, capabilities=ReaderCapabilities(...), timeout=3.0)`.
-[Catalogue đầy đủ](functions_implemented.md) chứa function/property, chữ ký và dòng nguồn; [JSON](api_symbols.json) dùng cho công cụ.
+async with reader:
+    info = (await reader.get_reader_info()).require_success()
+```
 
-## Kết quả
+The constructor performs no I/O. `open()`, `close()`, and the async context manager
+own the transport lifecycle. One dispatcher receives all bytes and serializes
+ordinary requests. Do not read from the transport independently while it belongs
+to a reader. Broadcast address `0xFF` is supported on a connection to one reader;
+simultaneous responses from multiple readers are not supported.
 
-Lệnh reader/tag trả `CommandResult[T]`:
+`ReaderCapabilities` declares the configured layout and firmware-specific options.
+It does not discover or verify hardware. The port count defaults to 1.
 
-- outcome: success/failure/partial/unknown.
-- data đã decode; raw_data giữ payload gốc.
-- command/status/tag_error native; FC+04 là lỗi memory locked của tag.
-- confirmation: none/transmitted/acknowledged/read_back_verified.
-- steps giữ kết quả từng bước; diagnostics giữ nguyên nhân.
-- require_success() ném OperationError kèm result nếu không success.
+## Results
 
-Status13 là partial: cấu hình có thể đã áp dụng nhưng lưu mất nguồn thất bại. ACK không chứng minh persistence qua power cycle.
+Reader and tag commands return `CommandResult[T]`:
 
-Validation/state/unsupported/unverified và deadline khi chờ khóa có thể ném exception trước TX. Timeout/disconnect sau TX trả unknown, khóa connection và không retry. CancelledError được truyền lại; xem last_result/last_inventory_outcome và state.
+| Field | Meaning |
+|---|---|
+| `outcome` | `success`, `failure`, `partial`, or `unknown` |
+| `data`, `raw_data` | Decoded result and original response payload |
+| `command`, `status`, `tag_error` | Native opcode, reader status, and nested tag error |
+| `confirmation` | `none`, `transmitted`, `acknowledged`, or `read_back_verified` |
+| `steps`, `diagnostics` | Results of a multi-step operation and reasons for its outcome |
 
-## Vòng đời
+```python
+result = await reader.get_power()
+try:
+    powers = result.require_success()
+except OperationError as error:
+    print(error.result.outcome, error.result.status, error.result.diagnostics)
+```
 
-open/close/async context manager; constructor không I/O. Một RX consumer thuộc Dispatcher, một ordinary request, đăng ký pending trước TX. Broadcast chỉ cho một reader point-to-point, không hỗ trợ nhiều reader đồng thời trên RS485.
+`require_success()` returns decoded data or raises `OperationError` with the full
+result. An ACK confirms the command response; it does not prove persistence through
+a power cycle. Status `0x13` is partial because applying a setting and saving it
+are separate outcomes. `0xFC` retains the tag's error code, such as `0x04` for locked memory.
 
-Deadline monotonic bao trùm chuỗi PC/read/write/verify và adapter read-modify-write. Stop93 bypass khóa request01. open() trên phiên đang chạy không reset state.
-
-Sau timeout/cancel/EOF phải thiết lập boundary sạch. open(recover=True) là xác nhận của caller đã kết thúc operation cũ và stale bytes không thể đến, ví dụ reset module/transport. Đóng/mở COM đơn thuần không chứng minh RF dừng.
+Input validation, unsupported features, state conflicts, and a deadline while
+waiting for the operation lock can raise before transmission. A timeout or
+disconnect after transmission leaves the operation uncertain and faults the
+connection. Writes are not retried automatically.
 
 ## Inventory
 
-inventory_once/single/matching_epc trả InventoryOutcome: reports hợp lệ, status/statistics, termination_reason, complete, received_count/dropped_count. Complete nói về giao dịch, **không chứng nhận đã đọc đủ tag ngoài hiện trường**.
+`inventory_once()`, `inventory_single()`, and `inventory_matching_epc()` return an
+`InventoryOutcome`. Inspect `reports`, `complete`, `termination_reason`,
+`received_count`, `dropped_count`, and diagnostics. Completion describes the
+transaction, not the number of physical tags successfully identified.
 
-start_inventory(mode,config,queue_size) trả InventorySession, async iterator TagReport hoặc Heartbeat. Dùng stop trong finally hoặc async context. Outcome của stream giữ counters; consumer lưu các report đã nhận. Queue đầy báo QueueOverflow và dropped_count.
+`start_inventory()` returns an `InventorySession`, an async iterator yielding
+`TagReport` or `Heartbeat`. Stop the session in `finally` or use its async context
+manager. A bounded queue reports overflow explicitly. Stream consumers retain
+their own reports; the session outcome provides counters.
 
-- Answer loop: config mỗi round;01 dừng bằng93. Mix19 không có interrupt theo manual, phải chờ round kết thúc.
-- Scenario: snapshot/set volatile/read-back CFG9/10/11, tạm chọn anten,50/EE/51; khôi phục sau stop ACK. EPC hoặc TID-only theo CFG10; không tự bật FastID/Mix.
-- Real-time: dùng config75 hiện tại; đọc77 xác định EPC/TID,76=1/2 để chạy,76=0 để dừng. Mode persistent. Q/phase/anten của Answer config không tự biến thành config75; gọi set_real_time_config trước.
+See [Inventory](inventory_modes.md) for mode-specific configuration and stop behavior.
 
-Device timeout/buffer-full, byte loss hoặc thiếu memory trong Mix là partial. Host timeout giữ tags hợp lệ. Report sau stop ACK làm state unknown để không lẫn với phiên mới.
+## Tag access
 
-## Memory/tag
+Memory addresses and lengths use **16-bit words**; selection masks use **bits**.
+Data and passwords use `bytes`. Use [Tag memory](tag_memory.md) for complete examples.
 
-read_memory(bank,word_address,word_count,target,access_password):1..120word.
-write_memory(bank,word_address,data,...):1..32word, bytes chẵn. Extended15/16 tự chọn khi start address>255 hoặc explicit extended_format. Không chia write/retry tự động.
+| Method | Contract |
+|---|---|
+| `read_memory()` | 1–120 words; normal or extended address format |
+| `write_memory()` | 1–32 words; even byte count; optional read-back |
+| `write_epc()` | Read PC, preserve its lower 11 bits, write PC + EPC, optionally verify |
+| `write_epc_single()` | Native `0x04`; exactly one physical tag; 1–14 EPC words |
+| `set_access_password()`, `set_kill_password()` | Write a 32-bit password; do not lock or kill |
+| `select_tag()`, `lock_tag()`, `kill_tag()` | Explicit Gen2 selection and protection operations |
+| `block_write()`, `block_erase()` | Optional chip-dependent commands with their own size limits |
 
-TagTarget(epc=bytes) dùng full EPC1..15word. TagTarget(mask=TagMask(bank,bit_address,bit_length,bytes)) dùng bank1..3,address0..16383,length1..255; padding thấp bằng0. None nghĩa unfiltered, không bảo đảm một tag.
+Read-back requires a target that still identifies the same tag after the write.
+Changing an EPC-selected tag requires `verification_target`. Changing the Access
+password through `write_memory()` also requires `verification_password` when
+verification is enabled.
 
-verify=True yêu cầu target còn hợp lệ. Nếu ghi thay EPC/PC/vùng mask, phải cung cấp verification_target; nên dùng TID ổn định. Ghi trực tiếp Access password phải có verification_password. Helper set_access_password tự dùng password mới cho read-back.
+## Recovery
 
-write_epc đọc PC, giữ11bit không phải length, ghép PC+EPC vào một targeted write từ word1 rồi verify. Không ghi CRC word0. write_epc_single là opcode04, cần đúng một physical tag; chỉ1..14word do errata.
+A timeout after TX, cancellation, EOF, or a late report can leave the reader
+operating even though the host has stopped waiting. `CancelledError` propagates;
+inspect `last_result`, `last_inventory_outcome`, and `state` for retained progress.
 
-lock_tag dùng LockTarget/LockProtection; kill_tag cần target và password khác0. BlockWrite tính frame budget251byte riêng; BlockErase1..120word, EPC WordPtr>=1. Chip tag có thể không hỗ trợ optional command. Ghi password khác lock.
+1. Close the connection and stop/reset the old reader operation.
+2. Establish a clean transport boundary so stale responses cannot arrive.
+3. Call `await reader.open(recover=True)`.
 
-## Đơn vị, persistence
+`recover=True` records the application's assertion that the boundary is clean. It
+does not reset hardware. Closing and reopening a COM port alone does not establish
+that the reader stopped RF activity.
 
-Power0..30dBm nguyên; get_power tuple theo thứ tự port. set_power mặc định tạm thời. Write power bit7 là enable, không phải persistence.
+Deadlines use monotonic time and cover lock acquisition and complete multi-step
+operations, including read/write/verify. A short transport write continues only
+the remaining bytes; it does not restart the command.
 
-Region là native band/min/max channel. Helper trả kHz cho bảng liên tục; band21/29 chưa quy đổi vì công thức mơ hồ. Profile mặc định extended uint16; legacy phải chọn explicit, không fallback âm thầm sau Set.
+## Configuration and units
 
-Scan time100ms; indicator50ms; heartbeat30s; Real-time pause trong10/20/30/50/100ms, filter seconds. Baud ACK dùng baud cũ rồi transport đổi baud; interface hiệu lực sau power cycle.
+| Setting | Units or behavior |
+|---|---|
+| Read/write power | Integer dBm, 0–30; per-port values follow antenna order |
+| Region | Native band and channel IDs; frequency helpers reject ambiguous bands 21 and 29 |
+| RF profile | Native ID; extended 16-bit format by default; legacy format is explicit |
+| Inventory scan time | 100 ms per unit |
+| Indicator pulse | 50 ms per unit |
+| Heartbeat interval | 30 s per unit |
+| Real-time pause | One of 10, 20, 30, 50, or 100 ms |
+| Baud rate | ACK at the old baud, then transport changes baud if supported |
+| Reader interface | Takes effect after a power cycle |
 
-RSSI giữ unsigned raw; `rssi_dbm = rssi_raw - 135` theo hai mốc người dùng đặt60→−75,110→−25. Helper `rssi_to_dbm(raw)` không clamp; report có `rssi_source` và `rssi_in_calibration_range` để phân biệt ngoại suy ngoài60..110. Chưa phải hiệu chuẩn RF tuyệt đối. Phase có `phase_raw`, hai integer BE16 `phase_begin_raw`/`phase_end_raw`, và các field `phase_begin_degrees`, `phase_end_degrees`, `phase_begin_radians`, `phase_end_radians`. Quy ước Ex10 V6.8: `(raw * 0.087) % 180` độ; không phải hiệu chuẩn phase tuyệt đối. Hai helper public `phase_to_degrees(raw, wrap=True)` và `phase_to_radians(raw, wrap=True)` hỗ trợ bỏ folding khi `wrap=False`. Field cũ số ít `phase_radians` giữ None. FrequencyBE24kHz khi có. Thiếu field dùng None. Timestamp host monotonic không phải RF timestamp. Xem [nguồn, đơn vị và live view](phase_and_live_view.md).
+Methods with `persist=False` default to volatile changes. Do not apply that rule
+to setters without a `persist` argument: Real-time configuration and working mode
+are stored by the reader. See [Commands](protocol/zk_commands.md).
 
-## Ví dụ ghi User
+Reports retain raw RSSI and phase alongside conversion metadata. The dBm estimate
+and phase convention are described in [RSSI and phase](phase_and_live_view.md).
 
-```python
-from zk_rfid import MemoryBank, TagMask, TagTarget
-# Thay bằng TID đủ phân biệt tag thử nghiệm có User bank.
-tid = bytes.fromhex("E28000000000000000000001")
-target = TagTarget(mask=TagMask(MemoryBank.TID, 0, len(tid)*8, tid))
-result = await reader.write_memory(
-    MemoryBank.USER, 0, bytes.fromhex("00011234"), target=target, verify=True
-)
-result.require_success()
-print(result.confirmation, result.steps)
-```
+## Custom transports and tracing
 
-## Structured trace và GUI
+Implement `AsyncTransport` for another byte transport or runtime. `read()` returns
+`bytes`; `b""` means EOF. Absorb ordinary serial polling timeouts inside the
+transport. `SerialTransport` imports `pyserial` only when opened.
 
-```python
-from zk_rfid import ZKReader
+Pass `on_event` to `ZKReader` to receive `TraceEvent` records, or configure the
+`zk_rfid.trace` logger. Callbacks must be short and nonblocking; observer failures
+are counted without interrupting RX. Trace data includes raw bytes and can expose
+tag identifiers and passwords. See the [test console](../tests/demo_app/README.md)
+for an example of queued file logging.
 
-# Observer đồng bộ phải trả về nhanh; đưa event vào queue nếu cần I/O.
-reader = ZKReader(transport, on_event=events.append)
-```
+## Migration from 0.1
 
-`TraceEvent` có sequence, timestamp monotonic, kind, exchange_id, command/address/status, raw bytes và detail. Các event gồm request, tx, rx, frame, response_complete, result, state, connected/disconnected, timeout/fault/cancelled/parser_loss. RX chunk có thể chứa nhiều frame nên không gán một exchange_id giả. Result của lệnh thường giữ ID giao dịch; multi-step operation phải xem cả steps trong CommandResult và các exchange liên quan.
-
-`logging.getLogger("zk_rfid.trace").setLevel(logging.DEBUG)` bật trace qua logging khi ứng dụng đã cấu hình handler. SDK không tự cài handler. Observer exception được đếm trong `reader.dispatcher.trace.observer_errors`; observer không được block RX hoặc gọi lại reader đồng bộ. Trace không thay thế outcome/confirmation từ API.
-
-[GUI trong tests/demo_app](../tests/demo_app/README.md) dùng observer này, file writer riêng, bảng tag và export CSV/JSONL. [Bảng đối chiếu NATION/C#](demo_and_parity.md) phân biệt chức năng đã có với vendor extensions còn thiếu.
+Version 0.2 consolidates the SDK into one file. Replace imports from
+`zk_rfid.<module>` with imports from `zk_rfid`. Reader method names and async
+semantics are retained. Pickles containing old class paths are not compatible;
+use explicit JSON or another application-owned storage format for persisted data.

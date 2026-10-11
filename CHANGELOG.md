@@ -1,32 +1,46 @@
 # Changelog
 
 ## Unreleased
-- Add a JavaScript/TypeScript Web Serial bridge using the canonical `src/zk_rfid.py` in Pyodide, plus a static browser example for inventory, configuration, tracing and verified EPC writes.
-- Preserve native results and errors through the JSON boundary; test stream ownership, fragmented RX, disconnect and recovery with real Pyodide and a simulated reader.
+
+- Add JavaScript/TypeScript integration through Web Serial and Pyodide, with a
+  static browser example for inventory, configuration, tracing, and verified EPC writes.
+- Preserve native results and errors across the browser bridge; handle fragmented
+  RX, stream ownership, USB loss, and explicit recovery.
+- Rework integration guides in English, add memory/frame/write diagrams, and
+  separate setup, API reference, compatibility, and validation.
+- Adopt the MIT license, add package metadata, and check repository and archive
+  contents for private files and broken documentation links.
+- Translate NATION reference comments and diagnostics; retain its upstream license
+  and record the modified-source provenance.
 
 ## 0.2.0.dev1 — 2026-10-09
-- Gộp implementation thành một file nguồn `src/zk_rfid.py`: native API, types/errors, CRC/parser/status, command builders/decoders, async/serial transport, dispatcher, inventory và NationAdapter. Không cần generator hoặc package SDK phụ khi copy tích hợp.
-- Giữ 74 method + 3 property của ZKReader, command bytes, response/error/confirmation, single RX, trace, RSSI và phase. Cập nhật demo, tools, examples, catalog và Pyodide dùng cùng file.
-- Đổi import module con sang `from zk_rfid import ...`; thêm SerialTransport và NationAdapter vào public exports. Đường dẫn module cũ/pickle chứa class path cũ không còn tương thích. API vẫn async/await.
-- Cấu hình wheel thành `py-modules`, thêm kiểm thử copy file độc lập bằng Python `-I -S` và chạy runtime harness không có site-packages/pyserial. Không thực hiện kiểm thử phần cứng mới trong đợt gộp file.
+
+- Consolidate the runtime into `src/zk_rfid.py` for single-file integration.
+- Retain 74 reader methods, three properties, async behavior, command formats,
+  native results, inventory lifecycle, and trace events.
+- Export `SerialTransport` and `NationAdapter` from the top-level module.
+- Replace submodule imports with `from zk_rfid import ...`. Pickles with old
+  module paths are incompatible.
+- Add standalone checks with isolated Python and a wheel containing one SDK module.
 
 ## 0.1.0.dev1 — 2026-10-09
-- Sửa bảng tag trống khi UI mới gọi `/api/live` trên Python server cũ: fallback snapshot, báo HTTP/version/restart, tự phục hồi live và chặn snapshot đến muộn. Server giữ static assets cùng phiên; thêm regression client/HTTP.
-- Thêm RSSI mapping theo yêu cầu người dùng: raw60→−75dBm, raw110→−25dBm (`raw - 135`), áp dụng cho inventory/stream/buffer; giữ raw/source/in-range, xuất qua adapter/CSV/log và cột dBm trên GUI. Ngoài dải dùng ngoại suy, không clamp.
-- Sửa cập nhật tag theo đợt: HTTP live stream riêng, bộ đếm cộng dồn/resync, cập nhật ô DOM, tách log/state; Answer session phát report trước khi kết thúc vòng. Hiển thị phiên inventory thực tế và dropped reports.
-- Decode phase begin/end BE16 cho các report có extension; thêm degree/radian helpers theo convention Ex10 V6.8 (0.087deg mod180), giữ raw/metadata và RSSI unsigned. GUI chọn đơn vị, CSV xuất đầy đủ; xem docs/phase_and_live_view.md.
-- Đổi demo UI sang Graphite Light dựa trên UI/UX Pro Max: semantic gray tokens, SVG icons, responsive navigation, focus/keyboard cho bảng tag và log, giữ vị trí đọc log; không đổi protocol/API.
-- Bổ sung HTML test console trong tests/demo_app theo yêu cầu mới: 72 thao tác + Connect/Disconnect, typed forms/JSON, simulator, inventory/tag table, CSV/JSONL và recovery theo cổng.
-- Bổ sung TraceEvent/on_event và logger zk_rfid.trace cho request/TX/RX/frame/result/state; callback lỗi không phá I/O, GUI ghi file qua hàng đợi riêng.
-- Đối chiếu phạm vi NATION/demo C# trong docs/demo_and_parity.md; không khẳng định đủ vendor extension chưa triển khai.
-- Triển khai native Gen2 ZK frame/CRC/parser và dispatcherasync singleRX, deadline/resync/error/lifecycle.
-- Triển khai reader/RF/antenna/Ex10CFG/buffer/GPIO/diagnostics; giữ các mâu thuẫn manual ở errata.
-- Triển khai Answer/FastID/TID/Mix/statistics, Scenario snapshot/restore, Real-time/trigger/heartbeat, stop theo mode.
-- Triển khai tag memorynormal/extended, EPC/PC/password/read-back/Select/Lock/Kill/BlockWrite/Erase; giữpartial/unknown và không retrywrite.
-- Thêm SerialTransport tùy chọn, transportinject, examples/console/capture/replay/comparator.
-- Thêm adapterNATIONasync và giữ nguyên reference/licensethirdparty.
-- Thêm testsunit/integration/runtime/hardwareopt-in, Pyodideharness, symbolcatalogue và docs.
-- Chưa hardwareverified, chưa benchmarkRF/powercycle, license phát hànhZK chưa chọn.
+
+- Implement native framing, CRC, parsing, asynchronous dispatch, and recovery.
+- Add reader/RF/antenna configuration, buffers, GPIO, and diagnostics.
+- Add Answer, TID, FastID, Mix, statistics, Scenario, Real-time, trigger, and heartbeat handling.
+- Add normal/extended memory access, EPC/PC helpers, passwords, verification,
+  Select, Lock, Kill, BlockWrite, and Erase.
+- Add the NATION API adapter, reference driver, examples, capture/replay tools, and
+  unit, integration, runtime, and opt-in hardware tests.
+- Add the local test console, simulator, typed command forms, trace correlation,
+  rotating JSONL logs, and CSV exports.
+- Add raw RSSI with the project-defined `raw - 135` estimate and begin/end phase
+  conversion using the Ex10 display convention.
+- Stream cumulative tag counts independently of logs; preserve selection and
+  recover from unavailable live endpoints or stale snapshots.
+- Record a limited hardware Scenario/phase session; broader firmware validation
+  and RF benchmarking remain open.
 
 ## 0.1.0.dev0 — 2026-10-09
-- Dựng scaffold, tree và plan ban đầu; giữ nguyên dữ liệu riêng và NATIONreference.
+
+- Create the initial SDK structure and pin the NATION reference.

@@ -1,1497 +1,1497 @@
 [
   {
     "file": "src/zk_rfid.py",
-    "line": 34,
+    "line": 37,
     "name": "SDK_NAME",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 35,
-    "name": "SDK_VERSION",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 38,
+    "name": "SDK_VERSION",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 41,
     "name": "setup_logging",
     "kind": "function",
     "signature": "setup_logging(level: int=logging.INFO) -> logging.Logger",
     "async": false,
     "description": "Opt-in SDK logger; import does not modify application logging.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 56,
+    "line": 59,
     "name": "ZKError",
     "kind": "class",
     "description": "Base SDK exception.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 60,
+    "line": 63,
     "name": "ValidationError",
     "kind": "class",
     "description": "Invalid input; no command was transmitted.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 64,
+    "line": 67,
     "name": "ProtocolError",
     "kind": "class",
     "description": "Invalid or unsupported response layout.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 68,
+    "line": 71,
     "name": "UnsupportedFeature",
     "kind": "class",
     "description": "Operation outside the reader/tag capability.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 72,
+    "line": 75,
     "name": "UnverifiedFeature",
     "kind": "class",
     "description": "Insufficient evidence to choose a wire format or conversion.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 76,
+    "line": 79,
     "name": "StateError",
     "kind": "class",
     "description": "Operation conflicts with reader state.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 80,
+    "line": 83,
     "name": "TransportError",
     "kind": "class",
     "description": "Connection failed; reader may already have changed.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 84,
+    "line": 87,
     "name": "ExchangeError",
     "kind": "class",
     "description": "Incomplete exchange, retaining valid responses already received.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 93,
+    "line": 96,
     "name": "RequestTimeout",
     "kind": "class",
     "description": "Host monotonic deadline expired (not a device status).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 97,
+    "line": 100,
     "name": "QueueOverflow",
     "kind": "class",
     "description": "Consumer could not keep up; loss is never silently hidden.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 101,
+    "line": 104,
     "name": "DeviceError",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 110,
+    "line": 113,
     "name": "OperationError",
     "kind": "class",
     "description": "Raised by require_success(), retaining the complete CommandResult.",
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 125,
-    "name": "T",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 128,
+    "name": "T",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 131,
     "name": "integer",
     "kind": "function",
     "signature": "integer(value: int, minimum: int, maximum: int, name: str) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 134,
+    "line": 137,
     "name": "boolean",
     "kind": "function",
     "signature": "boolean(value: bool, name: str) -> bool",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 140,
+    "line": 143,
     "name": "octets",
     "kind": "function",
     "signature": "octets(value: bytes, name: str, minimum=0, maximum=251) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 146,
-    "name": "MemoryBank",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 147,
-    "name": "MemoryBank.RESERVED",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 148,
-    "name": "MemoryBank.EPC",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 149,
-    "name": "MemoryBank.TID",
-    "kind": "constant",
+    "name": "MemoryBank",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 150,
-    "name": "MemoryBank.USER",
+    "name": "MemoryBank.RESERVED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 151,
+    "name": "MemoryBank.EPC",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 152,
+    "name": "MemoryBank.TID",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 153,
-    "name": "Outcome",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 154,
-    "name": "Outcome.SUCCESS",
+    "name": "MemoryBank.USER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 155,
-    "name": "Outcome.FAILURE",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 156,
-    "name": "Outcome.PARTIAL",
-    "kind": "constant",
+    "name": "Outcome",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 157,
-    "name": "Outcome.UNKNOWN",
+    "name": "Outcome.SUCCESS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 158,
+    "name": "Outcome.FAILURE",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 159,
+    "name": "Outcome.PARTIAL",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 160,
-    "name": "Confirmation",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 161,
-    "name": "Confirmation.NONE",
+    "name": "Outcome.UNKNOWN",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 162,
-    "name": "Confirmation.TRANSMITTED",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 163,
-    "name": "Confirmation.ACKNOWLEDGED",
-    "kind": "constant",
+    "name": "Confirmation",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 164,
-    "name": "Confirmation.READ_BACK",
+    "name": "Confirmation.NONE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 165,
+    "name": "Confirmation.TRANSMITTED",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 166,
+    "name": "Confirmation.ACKNOWLEDGED",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 167,
-    "name": "ReaderState",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 168,
-    "name": "ReaderState.DISCONNECTED",
+    "name": "Confirmation.READ_BACK",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 169,
-    "name": "ReaderState.IDLE",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 170,
-    "name": "ReaderState.STARTING",
-    "kind": "constant",
+    "name": "ReaderState",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 171,
-    "name": "ReaderState.INVENTORYING",
+    "name": "ReaderState.DISCONNECTED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 172,
-    "name": "ReaderState.STOPPING",
+    "name": "ReaderState.IDLE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 173,
-    "name": "ReaderState.UNKNOWN",
+    "name": "ReaderState.STARTING",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 174,
+    "name": "ReaderState.INVENTORYING",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 175,
+    "name": "ReaderState.STOPPING",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 176,
-    "name": "InventoryMode",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 177,
-    "name": "InventoryMode.ANSWER",
+    "name": "ReaderState.UNKNOWN",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 178,
-    "name": "InventoryMode.SCENARIO",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 179,
-    "name": "InventoryMode.REAL_TIME",
+    "name": "InventoryMode",
+    "kind": "class",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 180,
+    "name": "InventoryMode.ANSWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 181,
+    "name": "InventoryMode.SCENARIO",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 182,
-    "name": "InventoryData",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 183,
-    "name": "InventoryData.EPC",
+    "name": "InventoryMode.REAL_TIME",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 184,
-    "name": "InventoryData.TID",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 185,
-    "name": "InventoryData.FAST_ID",
-    "kind": "constant",
+    "name": "InventoryData",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 186,
-    "name": "InventoryData.MIX",
+    "name": "InventoryData.EPC",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 187,
+    "name": "InventoryData.TID",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 188,
+    "name": "InventoryData.FAST_ID",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 189,
-    "name": "WorkingMode",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 190,
-    "name": "WorkingMode.ANSWER",
+    "name": "InventoryData.MIX",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 191,
-    "name": "WorkingMode.REAL_TIME",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 192,
-    "name": "WorkingMode.TRIGGER",
+    "name": "WorkingMode",
+    "kind": "class",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 193,
+    "name": "WorkingMode.ANSWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 194,
+    "name": "WorkingMode.REAL_TIME",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 195,
-    "name": "LockTarget",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 196,
-    "name": "LockTarget.KILL_PASSWORD",
+    "name": "WorkingMode.TRIGGER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 197,
-    "name": "LockTarget.ACCESS_PASSWORD",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 198,
-    "name": "LockTarget.EPC",
-    "kind": "constant",
+    "name": "LockTarget",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 199,
-    "name": "LockTarget.TID",
+    "name": "LockTarget.KILL_PASSWORD",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 200,
-    "name": "LockTarget.USER",
+    "name": "LockTarget.ACCESS_PASSWORD",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 201,
+    "name": "LockTarget.EPC",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 202,
+    "name": "LockTarget.TID",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 203,
-    "name": "LockProtection",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 204,
-    "name": "LockProtection.UNLOCK",
+    "name": "LockTarget.USER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 205,
-    "name": "LockProtection.PERMANENT_UNLOCK",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 206,
-    "name": "LockProtection.PASSWORD",
-    "kind": "constant",
+    "name": "LockProtection",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 207,
+    "name": "LockProtection.UNLOCK",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 208,
+    "name": "LockProtection.PERMANENT_UNLOCK",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 209,
+    "name": "LockProtection.PASSWORD",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 210,
     "name": "LockProtection.PERMANENT_LOCK",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 211,
+    "line": 214,
     "name": "TagMask",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 228,
+    "line": 231,
     "name": "TagMask.encode",
     "kind": "method",
     "signature": "TagMask.encode(self) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 238,
+    "line": 241,
     "name": "TagTarget",
     "kind": "class",
     "description": "Exactly one full EPC or nonempty mask. None in an API means unfiltered.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 256,
+    "line": 259,
     "name": "CommandResult",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 269,
+    "line": 272,
     "name": "CommandResult.ok",
     "kind": "property",
     "signature": "CommandResult.ok(self) -> bool",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 272,
+    "line": 275,
     "name": "CommandResult.require_success",
     "kind": "method",
     "signature": "CommandResult.require_success(self) -> T",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 279,
+    "line": 282,
     "name": "ReaderInfo",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 294,
+    "line": 297,
     "name": "InventoryConfig",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 314,
+    "line": 317,
     "name": "TagReport",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 347,
+    "line": 350,
     "name": "InventoryStatistics",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 354,
+    "line": 357,
     "name": "Heartbeat",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 361,
+    "line": 364,
     "name": "InventoryOutcome",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 373,
+    "line": 376,
     "name": "InventoryOutcome.unique_count",
     "kind": "property",
     "signature": "InventoryOutcome.unique_count(self) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 378,
+    "line": 381,
     "name": "Region",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 385,
+    "line": 388,
     "name": "GPIOState",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 393,
+    "line": 396,
     "name": "RealTimeConfig",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 405,
+    "line": 408,
     "name": "WorkingModeConfig",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 411,
+    "line": 414,
     "name": "BufferCounts",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 417,
+    "line": 420,
     "name": "WritePower",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 423,
+    "line": 426,
     "name": "QueryParameters",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 430,
+    "line": 433,
     "name": "ScanParameters",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 437,
+    "line": 440,
     "name": "TIDParameters",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 443,
+    "line": 446,
     "name": "ParserDiagnostics",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 459,
+    "line": 462,
     "name": "ReaderCapabilities",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 492,
+    "line": 495,
     "name": "ReaderCapabilities.require",
     "kind": "method",
     "signature": "ReaderCapabilities.require(self, feature: str) -> None",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 506,
+    "line": 509,
     "name": "PHASE_CONVERSION",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 507,
-    "name": "RSSI_SOURCE",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 510,
+    "name": "RSSI_SOURCE",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 513,
     "name": "rssi_to_dbm",
     "kind": "function",
     "signature": "rssi_to_dbm(raw: int) -> float",
     "async": false,
-    "description": "User-defined linear mapping: raw 60 -> -75 dBm, 110 -> -25 dBm.\n\nThis is an estimate chosen by the user, not a vendor-calibrated reading.\nAll uint8 values use raw - 135; outside 60..110 this extrapolates without\nclamping. Decoded reports retain raw, source and an in-range flag.",
-    "status": "implemented; hardware unverified"
+    "description": "Project-defined RSSI estimate: raw 60 -> -75 dBm, 110 -> -25 dBm.\n\nThis is a reference-point estimate, not a vendor-calibrated reading.\nAll uint8 values use raw - 135; outside 60..110 this extrapolates without\nclamping. Decoded reports retain raw, source and an in-range flag.",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 532,
+    "line": 535,
     "name": "phase_to_degrees",
     "kind": "function",
     "signature": "phase_to_degrees(raw: int, *, wrap: bool=True) -> float",
     "async": false,
     "description": "Convert one uint16 phase word using Form1.cs's 0.087 deg/tick.\n\nBy default fold into [0, 180), matching the vendor's normal inventory\ndisplay. wrap=False returns the scaled word without folding. This is\na vendor display convention, not evidence of calibrated absolute phase.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 547,
+    "line": 550,
     "name": "phase_to_radians",
     "kind": "function",
     "signature": "phase_to_radians(raw: int, *, wrap: bool=True) -> float",
     "async": false,
     "description": "Radians of phase_to_degrees; folded values are in [0, pi).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 560,
+    "line": 563,
     "name": "TraceEvent",
     "kind": "class",
     "description": "Host monotonic timestamp; raw bytes are wire bytes, never inferred RF timing.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 574,
+    "line": 577,
     "name": "TraceEmitter",
     "kind": "class",
     "description": "A synchronous observer must return promptly; observer errors never affect RF I/O.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 583,
+    "line": 586,
     "name": "TraceEmitter.emit",
     "kind": "method",
     "signature": "TraceEmitter.emit(self, kind: str, **fields) -> TraceEvent",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 615,
+    "line": 618,
     "name": "RFProfile",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 625,
+    "line": 628,
     "name": "PROFILES",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 683,
+    "line": 686,
     "name": "get_profile_definition",
     "kind": "function",
     "signature": "get_profile_definition(profile_id: int) -> RFProfile",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 699,
-    "name": "CRC16_INIT",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 700,
-    "name": "CRC16_POLY",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 701,
-    "name": "MAX_COMMAND_DATA",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 702,
-    "name": "MAX_RESPONSE_DATA",
+    "name": "CRC16_INIT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 703,
-    "name": "BROADCAST_ADDRESS",
+    "name": "CRC16_POLY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 704,
+    "name": "MAX_COMMAND_DATA",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 705,
+    "name": "MAX_RESPONSE_DATA",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 706,
-    "name": "Command",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 707,
-    "name": "Command.INVENTORY",
+    "name": "BROADCAST_ADDRESS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 708,
-    "name": "Command.READ_MEMORY",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 709,
-    "name": "Command.WRITE_MEMORY",
-    "kind": "constant",
+    "name": "Command",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 710,
-    "name": "Command.WRITE_EPC",
+    "name": "Command.INVENTORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 711,
-    "name": "Command.KILL",
+    "name": "Command.READ_MEMORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 712,
-    "name": "Command.LOCK",
+    "name": "Command.WRITE_MEMORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 713,
-    "name": "Command.BLOCK_ERASE",
+    "name": "Command.WRITE_EPC",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 714,
-    "name": "Command.SINGLE_INVENTORY",
+    "name": "Command.KILL",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 715,
-    "name": "Command.BLOCK_WRITE",
+    "name": "Command.LOCK",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 716,
-    "name": "Command.READ_MEMORY_EXTENDED",
+    "name": "Command.BLOCK_ERASE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 717,
-    "name": "Command.WRITE_MEMORY_EXTENDED",
+    "name": "Command.SINGLE_INVENTORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 718,
-    "name": "Command.BUFFER_INVENTORY",
+    "name": "Command.BLOCK_WRITE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 719,
-    "name": "Command.MIX_INVENTORY",
+    "name": "Command.READ_MEMORY_EXTENDED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 720,
-    "name": "Command.INVENTORY_EPC",
+    "name": "Command.WRITE_MEMORY_EXTENDED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 721,
-    "name": "Command.READER_INFO",
+    "name": "Command.BUFFER_INVENTORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 722,
-    "name": "Command.SET_REGION",
+    "name": "Command.MIX_INVENTORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 723,
-    "name": "Command.SET_ADDRESS",
+    "name": "Command.INVENTORY_EPC",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 724,
-    "name": "Command.SET_SCAN_TIME",
+    "name": "Command.READER_INFO",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 725,
-    "name": "Command.SET_BAUDRATE",
+    "name": "Command.SET_REGION",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 726,
-    "name": "Command.SET_POWER",
+    "name": "Command.SET_ADDRESS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 727,
-    "name": "Command.INDICATOR",
+    "name": "Command.SET_SCAN_TIME",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 728,
-    "name": "Command.SET_ANTENNAS",
+    "name": "Command.SET_BAUDRATE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 729,
-    "name": "Command.SET_BUZZER",
+    "name": "Command.SET_POWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 730,
-    "name": "Command.SET_GPIO",
+    "name": "Command.INDICATOR",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 731,
-    "name": "Command.GET_GPIO",
+    "name": "Command.SET_ANTENNAS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 732,
-    "name": "Command.SERIAL_NUMBER",
+    "name": "Command.SET_BUZZER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 733,
-    "name": "Command.FAST_START",
+    "name": "Command.SET_GPIO",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 734,
-    "name": "Command.FAST_STOP",
+    "name": "Command.GET_GPIO",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 735,
-    "name": "Command.SET_ANTENNA_CHECK",
+    "name": "Command.SERIAL_NUMBER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 736,
-    "name": "Command.SET_INTERFACE",
+    "name": "Command.FAST_START",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 737,
-    "name": "Command.RETURN_LOSS_THRESHOLD",
+    "name": "Command.FAST_STOP",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 738,
-    "name": "Command.SET_BUFFER_LENGTH",
+    "name": "Command.SET_ANTENNA_CHECK",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 739,
-    "name": "Command.GET_BUFFER_LENGTH",
+    "name": "Command.SET_INTERFACE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 740,
-    "name": "Command.READ_BUFFER",
+    "name": "Command.RETURN_LOSS_THRESHOLD",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 741,
-    "name": "Command.CLEAR_BUFFER",
+    "name": "Command.SET_BUFFER_LENGTH",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 742,
-    "name": "Command.BUFFER_COUNT",
+    "name": "Command.GET_BUFFER_LENGTH",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 743,
-    "name": "Command.SET_REAL_TIME",
+    "name": "Command.READ_BUFFER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 744,
-    "name": "Command.SET_WORKING_MODE",
+    "name": "Command.CLEAR_BUFFER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 745,
-    "name": "Command.GET_WORKING_MODE",
+    "name": "Command.BUFFER_COUNT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 746,
-    "name": "Command.HEARTBEAT",
+    "name": "Command.SET_REAL_TIME",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 747,
-    "name": "Command.SET_WRITE_POWER",
+    "name": "Command.SET_WORKING_MODE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 748,
-    "name": "Command.GET_WRITE_POWER",
+    "name": "Command.GET_WORKING_MODE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 749,
-    "name": "Command.WRITE_RETRIES",
+    "name": "Command.HEARTBEAT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 750,
-    "name": "Command.PROFILE",
+    "name": "Command.SET_WRITE_POWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 751,
-    "name": "Command.DRM",
+    "name": "Command.GET_WRITE_POWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 752,
-    "name": "Command.RETURN_LOSS",
+    "name": "Command.WRITE_RETRIES",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 753,
-    "name": "Command.TEMPERATURE",
+    "name": "Command.PROFILE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 754,
-    "name": "Command.STOP_INVENTORY",
+    "name": "Command.DRM",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 755,
-    "name": "Command.GET_POWER",
+    "name": "Command.RETURN_LOSS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 756,
-    "name": "Command.SELECT",
+    "name": "Command.TEMPERATURE",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 757,
-    "name": "Command.GET_REGION",
+    "name": "Command.STOP_INVENTORY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 758,
-    "name": "Command.SET_CONFIG",
+    "name": "Command.GET_POWER",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 759,
-    "name": "Command.GET_CONFIG",
+    "name": "Command.SELECT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 760,
-    "name": "Command.TAG_REPORT",
+    "name": "Command.GET_REGION",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 761,
+    "name": "Command.SET_CONFIG",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 762,
+    "name": "Command.GET_CONFIG",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 763,
-    "name": "ConfigID",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 764,
-    "name": "ConfigID.SCAN",
+    "name": "Command.TAG_REPORT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 765,
-    "name": "ConfigID.TAG_FOCUS",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 766,
-    "name": "ConfigID.QUERY",
-    "kind": "constant",
+    "name": "ConfigID",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 767,
-    "name": "ConfigID.TID",
+    "name": "ConfigID.SCAN",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 768,
-    "name": "ConfigID.MASK",
+    "name": "ConfigID.TAG_FOCUS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 769,
-    "name": "ConfigID.IMPINJ_SCAN",
+    "name": "ConfigID.QUERY",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 770,
-    "name": "ConfigID.IMPINJ_SCAN_ID",
+    "name": "ConfigID.TID",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 771,
-    "name": "ConfigID.CUSTOM_PROFILES",
+    "name": "ConfigID.MASK",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 781,
+    "line": 772,
+    "name": "ConfigID.IMPINJ_SCAN",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 773,
+    "name": "ConfigID.IMPINJ_SCAN_ID",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 774,
+    "name": "ConfigID.CUSTOM_PROFILES",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 784,
     "name": "crc16",
     "kind": "function",
     "signature": "crc16(data: bytes, initial: int=CRC16_INIT) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 790,
+    "line": 793,
     "name": "append_crc",
     "kind": "function",
     "signature": "append_crc(data: bytes) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 802,
+    "line": 805,
     "name": "ResponseFrame",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 810,
+    "line": 813,
     "name": "encode_command",
     "kind": "function",
     "signature": "encode_command(address: int, command: int, data: bytes=b'') -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 817,
+    "line": 820,
     "name": "decode_response",
     "kind": "function",
     "signature": "decode_response(raw: bytes) -> ResponseFrame",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 832,
+    "line": 835,
     "name": "FrameParser",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 838,
+    "line": 841,
     "name": "FrameParser.reset",
     "kind": "method",
     "signature": "FrameParser.reset(self)",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 841,
+    "line": 844,
     "name": "FrameParser.feed",
     "kind": "method",
     "signature": "FrameParser.feed(self, data: bytes) -> list[ResponseFrame]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 888,
+    "line": 891,
     "name": "STATUS_NAMES",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 917,
+    "line": 920,
     "name": "StatusInfo",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 925,
+    "line": 928,
     "name": "interpret_status",
     "kind": "function",
     "signature": "interpret_status(command: int, status: int, data: bytes=b'') -> StatusInfo",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 950,
+    "line": 953,
     "name": "AsyncTransport",
     "kind": "class",
     "description": null,
@@ -1499,7 +1499,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 951,
+    "line": 954,
     "name": "AsyncTransport.open",
     "kind": "method",
     "signature": "AsyncTransport.open(self) -> None",
@@ -1509,7 +1509,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 952,
+    "line": 955,
     "name": "AsyncTransport.close",
     "kind": "method",
     "signature": "AsyncTransport.close(self) -> None",
@@ -1519,7 +1519,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 953,
+    "line": 956,
     "name": "AsyncTransport.read",
     "kind": "method",
     "signature": "AsyncTransport.read(self, size: int=4096) -> bytes",
@@ -1529,7 +1529,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 954,
+    "line": 957,
     "name": "AsyncTransport.write",
     "kind": "method",
     "signature": "AsyncTransport.write(self, data: bytes) -> int",
@@ -1539,661 +1539,661 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 966,
+    "line": 969,
     "name": "SerialTransport",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 977,
+    "line": 980,
     "name": "SerialTransport.open",
     "kind": "method",
     "signature": "SerialTransport.open(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1012,
+    "line": 1015,
     "name": "SerialTransport.read",
     "kind": "method",
     "signature": "SerialTransport.read(self, size=4096) -> bytes",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1026,
+    "line": 1029,
     "name": "SerialTransport.write",
     "kind": "method",
     "signature": "SerialTransport.write(self, data: bytes) -> int",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1034,
+    "line": 1037,
     "name": "SerialTransport.set_baudrate",
     "kind": "method",
     "signature": "SerialTransport.set_baudrate(self, baudrate: int)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1040,
+    "line": 1043,
     "name": "SerialTransport.close",
     "kind": "method",
     "signature": "SerialTransport.close(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1061,
+    "line": 1064,
     "name": "raw",
     "kind": "function",
     "signature": "raw(data: bytes) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1065,
+    "line": 1068,
     "name": "exact",
     "kind": "function",
     "signature": "exact(data: bytes, size: int) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1071,
+    "line": 1074,
     "name": "ack",
     "kind": "function",
     "signature": "ack(data: bytes) -> None",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1075,
+    "line": 1078,
     "name": "u8",
     "kind": "function",
     "signature": "u8(data: bytes) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1079,
+    "line": 1082,
     "name": "u16",
     "kind": "function",
     "signature": "u16(data: bytes) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1083,
+    "line": 1086,
     "name": "switch",
     "kind": "function",
     "signature": "switch(data: bytes) -> bool",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1091,
+    "line": 1094,
     "name": "Request",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1108,
+    "line": 1111,
     "name": "decode_reader_info",
     "kind": "function",
     "signature": "decode_reader_info(data: bytes, address: int=0) -> ReaderInfo",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1127,
+    "line": 1130,
     "name": "get_reader_info",
     "kind": "function",
     "signature": "get_reader_info() -> Request[ReaderInfo]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1131,
+    "line": 1134,
     "name": "get_serial_number",
     "kind": "function",
     "signature": "get_serial_number() -> Request[bytes]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1142,
+    "line": 1145,
     "name": "BAUD_CODES",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 1143,
-    "name": "PAUSE_CODES",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 1146,
+    "name": "PAUSE_CODES",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 1149,
     "name": "set_address",
     "kind": "function",
     "signature": "set_address(address: int) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1150,
+    "line": 1153,
     "name": "set_scan_time",
     "kind": "function",
     "signature": "set_scan_time(scan_time_100ms: int) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1157,
+    "line": 1160,
     "name": "set_baudrate",
     "kind": "function",
     "signature": "set_baudrate(baudrate: int) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1164,
+    "line": 1167,
     "name": "set_interface",
     "kind": "function",
     "signature": "set_interface(interface: str) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1170,
+    "line": 1173,
     "name": "set_working_mode",
     "kind": "function",
     "signature": "set_working_mode(mode: WorkingMode) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1174,
+    "line": 1177,
     "name": "encode_real_time",
     "kind": "function",
     "signature": "encode_real_time(config: RealTimeConfig) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1196,
+    "line": 1199,
     "name": "set_real_time",
     "kind": "function",
     "signature": "set_real_time(config: RealTimeConfig) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1200,
+    "line": 1203,
     "name": "decode_working_mode",
     "kind": "function",
     "signature": "decode_working_mode(data: bytes) -> WorkingModeConfig",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1226,
+    "line": 1229,
     "name": "get_working_mode",
     "kind": "function",
     "signature": "get_working_mode() -> Request[WorkingModeConfig]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1230,
+    "line": 1233,
     "name": "heartbeat",
     "kind": "function",
     "signature": "heartbeat(interval_30s: int | None=None) -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1249,
+    "line": 1252,
     "name": "set_power",
     "kind": "function",
     "signature": "set_power(power_dbm: int | tuple[int, ...], *, ports: int, persist=False) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1258,
+    "line": 1261,
     "name": "get_power",
     "kind": "function",
     "signature": "get_power(*, ports: int) -> Request[tuple[int, ...]]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1268,
+    "line": 1271,
     "name": "set_write_power",
     "kind": "function",
     "signature": "set_write_power(power_dbm: int | None) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1273,
+    "line": 1276,
     "name": "decode_write_power",
     "kind": "function",
     "signature": "decode_write_power(data: bytes) -> WritePower",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1280,
+    "line": 1283,
     "name": "get_write_power",
     "kind": "function",
     "signature": "get_write_power() -> Request[WritePower]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1284,
+    "line": 1287,
     "name": "write_retries",
     "kind": "function",
     "signature": "write_retries(count: int | None=None) -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1303,
+    "line": 1306,
     "name": "set_antennas",
     "kind": "function",
     "signature": "set_antennas(mask: int, *, ports: int, persist=False) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1314,
+    "line": 1317,
     "name": "set_antenna_check",
     "kind": "function",
     "signature": "set_antenna_check(enabled: bool) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1318,
+    "line": 1321,
     "name": "decode_antenna",
     "kind": "function",
     "signature": "decode_antenna(raw: int, *, ports: int, mask_encoding=False) -> dict",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1340,
+    "line": 1343,
     "name": "REGIONS",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 1369,
-    "name": "BAND_MAX",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 1372,
+    "name": "BAND_MAX",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 1375,
     "name": "validate_region",
     "kind": "function",
     "signature": "validate_region(region: Region) -> Region",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1381,
+    "line": 1384,
     "name": "channel_frequency_khz",
     "kind": "function",
     "signature": "channel_frequency_khz(band: int, channel: int) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1389,
+    "line": 1392,
     "name": "set_region",
     "kind": "function",
     "signature": "set_region(region: Region, *, persist=False, legacy=False) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1407,
+    "line": 1410,
     "name": "decode_region",
     "kind": "function",
     "signature": "decode_region(data: bytes) -> Region",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1415,
+    "line": 1418,
     "name": "get_region",
     "kind": "function",
     "signature": "get_region() -> Request[Region]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1419,
+    "line": 1422,
     "name": "profile",
     "kind": "function",
     "signature": "profile(profile_id: int | None=None, *, persist=False, extended=True) -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1432,
+    "line": 1435,
     "name": "drm",
     "kind": "function",
     "signature": "drm(enabled: bool | None=None) -> Request[bool]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 1444,
-    "name": "SCENARIO_SESSIONS",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 1447,
+    "name": "SCENARIO_SESSIONS",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 1450,
     "name": "encode_scan",
     "kind": "function",
     "signature": "encode_scan(value: ScanParameters) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1455,
+    "line": 1458,
     "name": "encode_query",
     "kind": "function",
     "signature": "encode_query(value: QueryParameters) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1463,
+    "line": 1466,
     "name": "encode_tid",
     "kind": "function",
     "signature": "encode_tid(value: TIDParameters) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1472,
+    "line": 1475,
     "name": "encode_profiles",
     "kind": "function",
     "signature": "encode_profiles(profiles: tuple[int, int, int]) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1478,
+    "line": 1481,
     "name": "decode_mask",
     "kind": "function",
     "signature": "decode_mask(data: bytes) -> TagMask",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1487,
+    "line": 1490,
     "name": "decode_config",
     "kind": "function",
     "signature": "decode_config(number: int, data: bytes)",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1515,
+    "line": 1518,
     "name": "get_config",
     "kind": "function",
     "signature": "get_config(number: int, *, decoded=True) -> Request",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1522,
+    "line": 1525,
     "name": "set_config",
     "kind": "function",
     "signature": "set_config(number: int, data: bytes, *, persist=False, confirmed_length=None) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 1554,
-    "name": "ZERO_PASSWORD",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 1557,
+    "name": "ZERO_PASSWORD",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 1560,
     "name": "password",
     "kind": "function",
     "signature": "password(value: bytes) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1561,
+    "line": 1564,
     "name": "selection",
     "kind": "function",
     "signature": "selection(target: TagTarget | None) -> tuple[bytes, bytes]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1571,
+    "line": 1574,
     "name": "validate_access",
     "kind": "function",
     "signature": "validate_access(bank: MemoryBank, address: int, count: int, maximum: int) -> None",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1579,
+    "line": 1582,
     "name": "read_memory",
     "kind": "function",
     "signature": "read_memory(bank: MemoryBank, word_address: int, word_count: int, *, target: TagTarget | None=None, access_password=ZERO_PASSWORD, extended: bool | None=None) -> Request[bytes]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1599,
+    "line": 1602,
     "name": "write_memory",
     "kind": "function",
     "signature": "write_memory(bank: MemoryBank, word_address: int, data: bytes, *, target: TagTarget | None=None, access_password=ZERO_PASSWORD, extended: bool | None=None, block=False) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1628,
+    "line": 1631,
     "name": "block_erase",
     "kind": "function",
     "signature": "block_erase(bank: MemoryBank, word_address: int, word_count: int, *, target: TagTarget | None=None, access_password=ZERO_PASSWORD) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1643,
+    "line": 1646,
     "name": "write_epc_single",
     "kind": "function",
     "signature": "write_epc_single(epc: bytes, *, access_password=ZERO_PASSWORD) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1651,
+    "line": 1654,
     "name": "lock_tag",
     "kind": "function",
     "signature": "lock_tag(lock_target: int, protection: int, *, target: TagTarget, access_password=ZERO_PASSWORD) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1668,
+    "line": 1671,
     "name": "kill_tag",
     "kind": "function",
     "signature": "kill_tag(kill_password: bytes, *, target: TagTarget) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1678,
+    "line": 1681,
     "name": "select_tag",
     "kind": "function",
     "signature": "select_tag(mask: TagMask, *, antenna_mask: int, ports: int, select_target=4, action=0, truncate=False) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1691,
+    "line": 1694,
     "name": "pc_with_epc_length",
     "kind": "function",
     "signature": "pc_with_epc_length(pc: bytes, epc: bytes) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1711,
+    "line": 1714,
     "name": "VENDOR_TAG_COMMANDS",
     "kind": "constant",
     "description": null,
@@ -2201,7 +2201,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1719,
+    "line": 1722,
     "name": "require_vendor_feature",
     "kind": "function",
     "signature": "require_vendor_feature(feature: str) -> None",
@@ -2211,1489 +2211,1489 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1732,
+    "line": 1735,
     "name": "validate_inventory",
     "kind": "function",
     "signature": "validate_inventory(config: InventoryConfig, ports: int) -> None",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1768,
+    "line": 1771,
     "name": "build_inventory",
     "kind": "function",
     "signature": "build_inventory(config: InventoryConfig, *, ports: int, buffered=False) -> Request",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1791,
+    "line": 1794,
     "name": "inventory_epc",
     "kind": "function",
     "signature": "inventory_epc(mask_data: bytes, bit_length: int, bit_offset=0, *, exclude=False) -> Request",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1806,
+    "line": 1809,
     "name": "fast_start",
     "kind": "function",
     "signature": "fast_start(target=0) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1810,
+    "line": 1813,
     "name": "fast_stop",
     "kind": "function",
     "signature": "fast_stop() -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1814,
+    "line": 1817,
     "name": "decode_statistics",
     "kind": "function",
     "signature": "decode_statistics(data: bytes) -> InventoryStatistics",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1848,
+    "line": 1851,
     "name": "decode_answer",
     "kind": "function",
     "signature": "decode_answer(data: bytes, config: InventoryConfig, *, ports: int, received_at: float | None=None) -> list[TagReport]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1886,
+    "line": 1889,
     "name": "MixDecoder",
     "kind": "class",
     "description": "Pair only adjacent sequence numbers, including across frames and 127->0.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1895,
+    "line": 1898,
     "name": "MixDecoder.feed",
     "kind": "method",
     "signature": "MixDecoder.feed(self, data: bytes, received_at=None) -> list[TagReport]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1944,
+    "line": 1947,
     "name": "MixDecoder.flush",
     "kind": "method",
     "signature": "MixDecoder.flush(self) -> list[TagReport]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1953,
+    "line": 1956,
     "name": "decode_stream",
     "kind": "function",
     "signature": "decode_stream(data: bytes, *, ports: int, tid_words=0, received_at=None, scenario=True) -> TagReport",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1983,
+    "line": 1986,
     "name": "decode_heartbeat",
     "kind": "function",
     "signature": "decode_heartbeat(data: bytes, *, ports: int) -> Heartbeat",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 1999,
+    "line": 2002,
     "name": "set_buffer_length",
     "kind": "function",
     "signature": "set_buffer_length(max_bytes: int) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2005,
+    "line": 2008,
     "name": "get_buffer_length",
     "kind": "function",
     "signature": "get_buffer_length() -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2015,
+    "line": 2018,
     "name": "clear_buffer",
     "kind": "function",
     "signature": "clear_buffer() -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2019,
+    "line": 2022,
     "name": "get_buffer_count",
     "kind": "function",
     "signature": "get_buffer_count() -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2023,
+    "line": 2026,
     "name": "decode_counts",
     "kind": "function",
     "signature": "decode_counts(data: bytes) -> BufferCounts",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2028,
+    "line": 2031,
     "name": "decode_buffer",
     "kind": "function",
     "signature": "decode_buffer(data: bytes, *, ports: int, data_kind=InventoryData.EPC, antenna_bytes: int | None=None) -> list[TagReport]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2076,
+    "line": 2079,
     "name": "set_buzzer",
     "kind": "function",
     "signature": "set_buzzer(enabled: bool) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2080,
+    "line": 2083,
     "name": "indicator",
     "kind": "function",
     "signature": "indicator(active_50ms: int, silent_50ms: int, count: int) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2095,
+    "line": 2098,
     "name": "set_gpio",
     "kind": "function",
     "signature": "set_gpio(output1: bool, output2: bool) -> Request[None]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2100,
+    "line": 2103,
     "name": "decode_gpio",
     "kind": "function",
     "signature": "decode_gpio(data: bytes) -> GPIOState",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2107,
+    "line": 2110,
     "name": "get_gpio",
     "kind": "function",
     "signature": "get_gpio() -> Request[GPIOState]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2118,
+    "line": 2121,
     "name": "decode_temperature",
     "kind": "function",
     "signature": "decode_temperature(data: bytes) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2125,
+    "line": 2128,
     "name": "get_temperature",
     "kind": "function",
     "signature": "get_temperature() -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2129,
+    "line": 2132,
     "name": "measure_return_loss",
     "kind": "function",
     "signature": "measure_return_loss(frequency_khz: int, antenna: int, *, ports: int) -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2137,
+    "line": 2140,
     "name": "return_loss_threshold",
     "kind": "function",
     "signature": "return_loss_threshold(threshold_db: int | None=None) -> Request[int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2167,
+    "line": 2170,
     "name": "Dispatcher",
     "kind": "class",
     "description": "Timeout/cancellation after TX poisons this connection until explicit recovery.\n\nopen(recover=True) is an assertion by the caller that the old device operation\nhas ended and stale bytes cannot arrive (e.g. physical reset/reconnection).\nClosing a port alone does not stop reader RF.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2194,
+    "line": 2197,
     "name": "Dispatcher.pending_command",
     "kind": "property",
     "signature": "Dispatcher.pending_command(self) -> int | None",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2197,
+    "line": 2200,
     "name": "Dispatcher.open",
     "kind": "method",
     "signature": "Dispatcher.open(self, *, recover=False) -> None",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2217,
+    "line": 2220,
     "name": "Dispatcher.close",
     "kind": "method",
     "signature": "Dispatcher.close(self) -> None",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2272,
+    "line": 2275,
     "name": "Dispatcher.exchange",
     "kind": "method",
     "signature": "Dispatcher.exchange(self, command: int, data: bytes=b'', *, timeout=3.0, deadline: float | None=None, terminal=None, on_frame=None) -> tuple[ResponseFrame, ...]",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2377,
+    "line": 2380,
     "name": "Dispatcher.interrupt_answer",
     "kind": "method",
     "signature": "Dispatcher.interrupt_answer(self, *, timeout=1.0) -> bool",
     "async": true,
     "description": "Send 0x93 only while 0x01 is pending; it has no independent ACK.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2523,
+    "line": 2526,
     "name": "collect_answer",
     "kind": "function",
     "signature": "collect_answer(reader, config, *, timeout, request=None, managed=False, on_report=None)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2649,
+    "line": 2652,
     "name": "collect_buffer",
     "kind": "function",
     "signature": "collect_buffer(reader, data_kind, timeout)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2703,
+    "line": 2706,
     "name": "InventorySession",
     "kind": "class",
     "description": "Async iterator of TagReport or Heartbeat with explicit stop and final outcome.\n\nScenario applies volatile CFG9/10/11 and one antenna, verifies them, and\nrestores snapshots after a confirmed stop. Real-time uses the already saved\n0x75 configuration; 0x76 start/stop changes persistent working mode.\nStream outcome stores counters; the consumer owns delivered report storage.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2758,
+    "line": 2761,
     "name": "InventorySession.start",
     "kind": "method",
     "signature": "InventorySession.start(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 2985,
+    "line": 2988,
     "name": "InventorySession.stop",
     "kind": "method",
     "signature": "InventorySession.stop(self) -> InventoryOutcome",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3081,
+    "line": 3084,
     "name": "ZKReader",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3104,
+    "line": 3107,
     "name": "ZKReader.state",
     "kind": "property",
     "signature": "ZKReader.state(self) -> ReaderState",
     "async": false,
     "description": "Host lifecycle state; IDLE alone does not prove a saved real-time mode is off.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3118,
+    "line": 3121,
     "name": "ZKReader.address",
     "kind": "property",
     "signature": "ZKReader.address(self) -> int",
     "async": false,
     "description": "Current wire address; changes only after an acknowledged address update.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3123,
+    "line": 3126,
     "name": "ZKReader.is_inventory_running",
     "kind": "property",
     "signature": "ZKReader.is_inventory_running(self) -> bool",
     "async": false,
     "description": "Whether this host owns an active or transitioning inventory session.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3127,
+    "line": 3130,
     "name": "ZKReader.get_capabilities",
     "kind": "method",
     "signature": "ZKReader.get_capabilities(self) -> ReaderCapabilities",
     "async": false,
     "description": "Return declared capabilities and their evidence; no hardware probing.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3166,
+    "line": 3169,
     "name": "ZKReader.open",
     "kind": "method",
     "signature": "ZKReader.open(self, *, recover: bool=False) -> 'ZKReader'",
     "async": true,
     "description": "Open transport and start the single RX task; recover requires a known clean boundary.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3175,
+    "line": 3178,
     "name": "ZKReader.close",
     "kind": "method",
     "signature": "ZKReader.close(self) -> None",
     "async": true,
     "description": "Stop owned inventory, close transport and join background tasks.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3283,
+    "line": 3286,
     "name": "ZKReader.get_reader_info",
     "kind": "method",
     "signature": "ZKReader.get_reader_info(self) -> CommandResult[ReaderInfo]",
     "async": true,
     "description": "Read native reader identity, RF configuration and antenna-check state (0x21).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3291,
+    "line": 3294,
     "name": "ZKReader.get_serial_number",
     "kind": "method",
     "signature": "ZKReader.get_serial_number(self) -> CommandResult[bytes]",
     "async": true,
     "description": "Read the four-byte reader serial number (0x4C).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3295,
+    "line": 3298,
     "name": "ZKReader.get_power",
     "kind": "method",
     "signature": "ZKReader.get_power(self) -> CommandResult[tuple[int, ...]]",
     "async": true,
     "description": "Read one integer dBm value per declared antenna (0x94).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3299,
+    "line": 3302,
     "name": "ZKReader.set_power",
     "kind": "method",
     "signature": "ZKReader.set_power(self, power_dbm: int | tuple[int, ...], *, persist: bool=False) -> CommandResult[None]",
     "async": true,
     "description": "Set 0..30 dBm globally or per antenna; volatile unless persist=True (0x2F).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3307,
+    "line": 3310,
     "name": "ZKReader.get_write_power",
     "kind": "method",
     "signature": "ZKReader.get_write_power(self) -> CommandResult[WritePower]",
     "async": true,
-    "description": "Get write power. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the separate write-power enable flag and dBm value (0x7A).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3311,
+    "line": 3314,
     "name": "ZKReader.set_write_power",
     "kind": "method",
     "signature": "ZKReader.set_write_power(self, power_dbm: int | None) -> CommandResult[None]",
     "async": true,
     "description": "Set separate write power in dBm, or None to disable it (0x79).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3315,
+    "line": 3318,
     "name": "ZKReader.get_write_retries",
     "kind": "method",
     "signature": "ZKReader.get_write_retries(self) -> CommandResult[int]",
     "async": true,
-    "description": "Get write retries. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the reader's write-retry count, 0..7 (0x7B).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3319,
+    "line": 3322,
     "name": "ZKReader.set_write_retries",
     "kind": "method",
     "signature": "ZKReader.set_write_retries(self, count: int) -> CommandResult[int]",
     "async": true,
     "description": "Set the module retry count 0..7; the host never retries writes (0x7B).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3323,
+    "line": 3326,
     "name": "ZKReader.set_antennas",
     "kind": "method",
     "signature": "ZKReader.set_antennas(self, mask: int, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
     "description": "Select antenna mask with bit0=port1; volatile unless persist=True (0x3F).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3329,
+    "line": 3332,
     "name": "ZKReader.get_antennas",
     "kind": "method",
     "signature": "ZKReader.get_antennas(self) -> CommandResult[int]",
     "async": true,
     "description": "Get the native antenna mask; the 16-port getter remains unverified.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3336,
+    "line": 3339,
     "name": "ZKReader.set_antenna_check",
     "kind": "method",
     "signature": "ZKReader.set_antenna_check(self, enabled: bool) -> CommandResult[None]",
     "async": true,
-    "description": "Set antenna check. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Enable or disable the reader's antenna connection check (0x66).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3340,
+    "line": 3343,
     "name": "ZKReader.get_antenna_check",
     "kind": "method",
     "signature": "ZKReader.get_antenna_check(self) -> CommandResult[bool]",
     "async": true,
-    "description": "Get antenna check. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the antenna-check flag from reader information (0x21).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3345,
+    "line": 3348,
     "name": "ZKReader.set_address",
     "kind": "method",
     "signature": "ZKReader.set_address(self, address: int) -> CommandResult[None]",
     "async": true,
     "description": "Change reader address after receiving the ACK at the original address (0x24).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3354,
+    "line": 3357,
     "name": "ZKReader.set_baudrate",
     "kind": "method",
     "signature": "ZKReader.set_baudrate(self, baudrate: int) -> CommandResult[None]",
     "async": true,
     "description": "Receive ACK at the old baud, then switch the transport baud (0x28).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3374,
+    "line": 3377,
     "name": "ZKReader.set_inventory_time",
     "kind": "method",
     "signature": "ZKReader.set_inventory_time(self, scan_time_100ms: int) -> CommandResult[None]",
     "async": true,
     "description": "Set native scan time in 100 ms units: 0 or 3..255 (0x25).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3378,
+    "line": 3381,
     "name": "ZKReader.set_interface",
     "kind": "method",
     "signature": "ZKReader.set_interface(self, interface: str) -> CommandResult[None]",
     "async": true,
     "description": "Select usb or uart (0x6A); effective after a module power cycle.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3382,
+    "line": 3385,
     "name": "ZKReader.get_region",
     "kind": "method",
     "signature": "ZKReader.get_region(self) -> CommandResult[Region]",
     "async": true,
-    "description": "Get region. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the native band ID and minimum/maximum channel indices (0x9E).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3386,
+    "line": 3389,
     "name": "ZKReader.set_region",
     "kind": "method",
     "signature": "ZKReader.set_region(self, region: Region, *, persist: bool=False, legacy: bool=False) -> CommandResult[None]",
     "async": true,
     "description": "Set native region and channel indices; no NATION region-ID conversion (0x22).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3392,
+    "line": 3395,
     "name": "ZKReader.get_profile",
     "kind": "method",
     "signature": "ZKReader.get_profile(self, *, extended_format: bool=True) -> CommandResult[int]",
     "async": true,
     "description": "Read native RF profile ID, including the 16-bit Ex10 format (0x7F).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3396,
+    "line": 3399,
     "name": "ZKReader.set_profile",
     "kind": "method",
     "signature": "ZKReader.set_profile(self, profile_id: int, *, persist: bool=False, extended_format: bool=True) -> CommandResult[int]",
     "async": true,
     "description": "Set native RF profile ID; no inferred equivalence with NATION profiles (0x7F).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3402,
+    "line": 3405,
     "name": "ZKReader.get_drm",
     "kind": "method",
     "signature": "ZKReader.get_drm(self) -> CommandResult[bool]",
     "async": true,
-    "description": "Get drm. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read whether dense-reader mode is enabled (0x90).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3406,
+    "line": 3409,
     "name": "ZKReader.set_drm",
     "kind": "method",
     "signature": "ZKReader.set_drm(self, enabled: bool) -> CommandResult[bool]",
     "async": true,
-    "description": "Set drm. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Enable or disable dense-reader mode (0x90).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3410,
+    "line": 3413,
     "name": "ZKReader.set_buzzer",
     "kind": "method",
     "signature": "ZKReader.set_buzzer(self, enabled: bool) -> CommandResult[None]",
     "async": true,
-    "description": "Set buzzer. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Enable or disable the reader's tag-read buzzer (0x40).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3414,
+    "line": 3417,
     "name": "ZKReader.pulse_indicator",
     "kind": "method",
     "signature": "ZKReader.pulse_indicator(self, active_50ms: int, silent_50ms: int, count: int) -> CommandResult[None]",
     "async": true,
     "description": "Pulse LED/buzzer using 50 ms active/silent units (0x33).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3420,
+    "line": 3423,
     "name": "ZKReader.get_gpio",
     "kind": "method",
     "signature": "ZKReader.get_gpio(self) -> CommandResult[GPIOState]",
     "async": true,
     "description": "Read input and output bits in the documented GPIO layout (0x47).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3425,
+    "line": 3428,
     "name": "ZKReader.set_gpio",
     "kind": "method",
     "signature": "ZKReader.set_gpio(self, output1: bool, output2: bool) -> CommandResult[None]",
     "async": true,
     "description": "Set the two documented GPO outputs (0x46).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3430,
+    "line": 3433,
     "name": "ZKReader.get_temperature",
     "kind": "method",
     "signature": "ZKReader.get_temperature(self) -> CommandResult[int]",
     "async": true,
     "description": "Read signed integer Celsius using the native sign byte (0x92).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3435,
+    "line": 3438,
     "name": "ZKReader.measure_return_loss",
     "kind": "method",
     "signature": "ZKReader.measure_return_loss(self, frequency_khz: int, antenna: int=1) -> CommandResult[int]",
     "async": true,
     "description": "Measure return loss at a documented grid frequency in kHz (0x91).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3441,
+    "line": 3444,
     "name": "ZKReader.get_return_loss_threshold",
     "kind": "method",
     "signature": "ZKReader.get_return_loss_threshold(self) -> CommandResult[int]",
     "async": true,
-    "description": "Get return loss threshold. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the antenna return-loss threshold in dB (0x6E).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3445,
+    "line": 3448,
     "name": "ZKReader.set_return_loss_threshold",
     "kind": "method",
     "signature": "ZKReader.set_return_loss_threshold(self, threshold_db: int) -> CommandResult[int]",
     "async": true,
-    "description": "Set return loss threshold. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set the antenna return-loss threshold to 0..20 dB (0x6E).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3449,
+    "line": 3452,
     "name": "ZKReader.get_config",
     "kind": "method",
     "signature": "ZKReader.get_config(self, number: int, *, decoded: bool=True) -> CommandResult[ScanParameters | QueryParameters | TIDParameters | TagMask | tuple[int, ...] | bool | bytes]",
     "async": true,
     "description": "Read an Ex10 CFG value; decoded=False preserves the exact native bytes (0xEB).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3458,
+    "line": 3461,
     "name": "ZKReader.set_config",
     "kind": "method",
     "signature": "ZKReader.set_config(self, number: int, data: bytes, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
     "description": "Validate and set Ex10 CFG; ambiguous CFG25/29 require an explicit dialect (0xEA).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3474,
+    "line": 3477,
     "name": "ZKReader.get_scan_parameters",
     "kind": "method",
     "signature": "ZKReader.get_scan_parameters(self) -> CommandResult[ScanParameters]",
     "async": true,
-    "description": "Get scan parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read scan interval, antenna dwell, and count (CFG7).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3478,
+    "line": 3481,
     "name": "ZKReader.set_scan_parameters",
     "kind": "method",
     "signature": "ZKReader.set_scan_parameters(self, parameters: ScanParameters, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set scan parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set scan interval in 10 ms units, dwell in 100 ms units, and count (CFG7).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3484,
+    "line": 3487,
     "name": "ZKReader.get_tag_focus",
     "kind": "method",
     "signature": "ZKReader.get_tag_focus(self) -> CommandResult[bool]",
     "async": true,
-    "description": "Get tag focus. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the TagFocus enable flag (CFG8).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3488,
+    "line": 3491,
     "name": "ZKReader.set_tag_focus",
     "kind": "method",
     "signature": "ZKReader.set_tag_focus(self, enabled: bool, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set tag focus. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Enable or disable TagFocus for compatible tags (CFG8).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3492,
+    "line": 3495,
     "name": "ZKReader.get_query_parameters",
     "kind": "method",
     "signature": "ZKReader.get_query_parameters(self) -> CommandResult[QueryParameters]",
     "async": true,
-    "description": "Get query parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read Q, session, and phase settings for Scenario inventory (CFG9).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3496,
+    "line": 3499,
     "name": "ZKReader.set_query_parameters",
     "kind": "method",
     "signature": "ZKReader.set_query_parameters(self, parameters: QueryParameters, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set query parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set Q, session, and phase for Scenario inventory (CFG9).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3502,
+    "line": 3505,
     "name": "ZKReader.get_tid_parameters",
     "kind": "method",
     "signature": "ZKReader.get_tid_parameters(self) -> CommandResult[TIDParameters]",
     "async": true,
-    "description": "Get tid parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the Scenario TID word address and count (CFG10).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3506,
+    "line": 3509,
     "name": "ZKReader.set_tid_parameters",
     "kind": "method",
     "signature": "ZKReader.set_tid_parameters(self, parameters: TIDParameters, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set tid parameters. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set Scenario TID selection; word_count=0 selects EPC instead (CFG10).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3512,
+    "line": 3515,
     "name": "ZKReader.get_inventory_mask",
     "kind": "method",
     "signature": "ZKReader.get_inventory_mask(self) -> CommandResult[TagMask]",
     "async": true,
-    "description": "Get inventory mask. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the bank, bit address, length, and data of the inventory mask (CFG11).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3516,
+    "line": 3519,
     "name": "ZKReader.set_inventory_mask",
     "kind": "method",
     "signature": "ZKReader.set_inventory_mask(self, mask: TagMask | None, *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set inventory mask. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set the inventory selection mask, or pass None to clear it (CFG11).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3523,
+    "line": 3526,
     "name": "ZKReader.get_custom_profiles",
     "kind": "method",
     "signature": "ZKReader.get_custom_profiles(self) -> CommandResult[tuple[int, ...]]",
     "async": true,
-    "description": "Get custom profiles. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the three custom RF profile IDs (CFG31).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3527,
+    "line": 3530,
     "name": "ZKReader.set_custom_profiles",
     "kind": "method",
     "signature": "ZKReader.set_custom_profiles(self, profile_ids: tuple[int, int, int], *, persist: bool=False) -> CommandResult[None]",
     "async": true,
-    "description": "Set custom profiles. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Set three native 16-bit RF profile IDs (CFG31).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3533,
+    "line": 3536,
     "name": "ZKReader.set_real_time_config",
     "kind": "method",
     "signature": "ZKReader.set_real_time_config(self, config: RealTimeConfig) -> CommandResult[None]",
     "async": true,
     "description": "Persist the dedicated 0x75 real-time settings; separate from Scenario CFG.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3538,
+    "line": 3541,
     "name": "ZKReader.get_working_mode",
     "kind": "method",
     "signature": "ZKReader.get_working_mode(self) -> CommandResult[WorkingModeConfig]",
     "async": true,
     "description": "Read the 0x77 mode and fixed-width saved real-time configuration.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3545,
+    "line": 3548,
     "name": "ZKReader.set_working_mode",
     "kind": "method",
     "signature": "ZKReader.set_working_mode(self, mode: WorkingMode) -> CommandResult[None]",
     "async": true,
     "description": "Persistent mode setting. For managed 0xEE delivery use start_inventory().",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3554,
+    "line": 3557,
     "name": "ZKReader.get_heartbeat_interval",
     "kind": "method",
     "signature": "ZKReader.get_heartbeat_interval(self) -> CommandResult[int]",
     "async": true,
-    "description": "Get heartbeat interval. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the heartbeat interval in 30 s units; zero means disabled (0x78).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3558,
+    "line": 3561,
     "name": "ZKReader.set_heartbeat_interval",
     "kind": "method",
     "signature": "ZKReader.set_heartbeat_interval(self, interval_30s: int) -> CommandResult[int]",
     "async": true,
     "description": "Set heartbeat interval in 30 second units, with 0 disabling it (0x78).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3562,
+    "line": 3565,
     "name": "ZKReader.get_buffer_length",
     "kind": "method",
     "signature": "ZKReader.get_buffer_length(self) -> CommandResult[int]",
     "async": true,
-    "description": "Get buffer length. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the maximum stored ID length, 16 or 62 bytes (0x71).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3566,
+    "line": 3569,
     "name": "ZKReader.set_buffer_length",
     "kind": "method",
     "signature": "ZKReader.set_buffer_length(self, max_bytes: int) -> CommandResult[None]",
     "async": true,
     "description": "Set maximum stored EPC/TID length to 16 or 62 bytes; clears the buffer (0x70).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3570,
+    "line": 3573,
     "name": "ZKReader.get_buffer_count",
     "kind": "method",
     "signature": "ZKReader.get_buffer_count(self) -> CommandResult[int]",
     "async": true,
-    "description": "Get buffer count. Returns native status and confirmation.",
-    "status": "implemented; hardware unverified"
+    "description": "Read the number of tag records in the reader buffer (0x74).",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3574,
+    "line": 3577,
     "name": "ZKReader.clear_buffer",
     "kind": "method",
     "signature": "ZKReader.clear_buffer(self) -> CommandResult[None]",
     "async": true,
     "description": "Clear the reader tag buffer (0x73).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3578,
+    "line": 3581,
     "name": "ZKReader.inventory_to_buffer",
     "kind": "method",
     "signature": "ZKReader.inventory_to_buffer(self, config: InventoryConfig=InventoryConfig(), *, timeout: float | None=None) -> CommandResult[BufferCounts]",
     "async": true,
     "description": "Run buffered inventory and return counts; this changes reader buffer contents (0x18).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3588,
+    "line": 3591,
     "name": "ZKReader.read_buffer",
     "kind": "method",
     "signature": "ZKReader.read_buffer(self, *, data_kind: InventoryData=InventoryData.EPC, timeout: float | None=None) -> InventoryOutcome",
     "async": true,
     "description": "Collect all 0x72 frames; preserve partial reports and enforce one overall deadline.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3595,
+    "line": 3598,
     "name": "ZKReader.inventory_once",
     "kind": "method",
     "signature": "ZKReader.inventory_once(self, config: InventoryConfig=InventoryConfig(), *, timeout: float | None=None) -> InventoryOutcome",
     "async": true,
     "description": "Run one Answer/Mix round, preserving reports on partial completion or timeout.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3604,
+    "line": 3607,
     "name": "ZKReader.inventory_single",
     "kind": "method",
     "signature": "ZKReader.inventory_single(self, *, timeout: float | None=None) -> InventoryOutcome",
     "async": true,
     "description": "Run native single-tag inventory (0x0F).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3611,
+    "line": 3614,
     "name": "ZKReader.inventory_matching_epc",
     "kind": "method",
     "signature": "ZKReader.inventory_matching_epc(self, data: bytes, bit_length: int, *, bit_offset: int=0, exclude: bool=False, timeout: float | None=None) -> InventoryOutcome",
     "async": true,
     "description": "Run native EPC-bit-match inventory with explicit bit offset and length (0x1A).",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3627,
+    "line": 3630,
     "name": "ZKReader.start_inventory",
     "kind": "method",
     "signature": "ZKReader.start_inventory(self, mode: InventoryMode=InventoryMode.SCENARIO, *, config: InventoryConfig=InventoryConfig(), queue_size: int=1024, trigger: bool=False) -> InventorySession",
     "async": true,
     "description": "Start a managed async report iterator; stop explicitly or use its context manager.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3641,
+    "line": 3644,
     "name": "ZKReader.stop_inventory",
     "kind": "method",
     "signature": "ZKReader.stop_inventory(self) -> InventoryOutcome",
     "async": true,
     "description": "Stop by mode-specific semantics; 0x93 has no ACK of its own.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3655,
+    "line": 3658,
     "name": "ZKReader.read_memory",
     "kind": "method",
     "signature": "ZKReader.read_memory(self, bank: MemoryBank, word_address: int, word_count: int, *, target: TagTarget | None=None, access_password: bytes=ZERO_PASSWORD, extended_format: bool | None=None) -> CommandResult[bytes]",
     "async": true,
     "description": "Read 1..120 16-bit words; choose extended address format automatically when needed.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3694,
+    "line": 3697,
     "name": "ZKReader.write_memory",
     "kind": "method",
     "signature": "ZKReader.write_memory(self, bank: MemoryBank, word_address: int, data: bytes, *, target: TagTarget | None=None, access_password: bytes=ZERO_PASSWORD, extended_format: bool | None=None, verify: bool=False, verification_target: TagTarget | None=None, verification_password: bytes | None=None, timeout: float | None=None) -> CommandResult[bytes | None]",
     "async": true,
     "description": "Write 1..32 words once, optionally verify using a stable post-write target.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3775,
+    "line": 3778,
     "name": "ZKReader.write_epc",
     "kind": "method",
     "signature": "ZKReader.write_epc(self, epc: bytes, *, target: TagTarget, access_password: bytes=ZERO_PASSWORD, verify: bool=True, verification_target: TagTarget | None=None, timeout: float | None=None) -> CommandResult[bytes | None]",
     "async": true,
     "description": "Read PC, preserve non-length bits, then one targeted PC+EPC write.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3845,
+    "line": 3848,
     "name": "ZKReader.write_epc_single",
     "kind": "method",
     "signature": "ZKReader.write_epc_single(self, epc: bytes, *, access_password: bytes=ZERO_PASSWORD) -> CommandResult[None]",
     "async": true,
     "description": "Native 0x04. Requires exactly one tag physically in the RF field.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3851,
+    "line": 3854,
     "name": "ZKReader.set_access_password",
     "kind": "method",
     "signature": "ZKReader.set_access_password(self, new_password: bytes, *, target: TagTarget, access_password: bytes=ZERO_PASSWORD, verify: bool=True) -> CommandResult[bytes | None]",
     "async": true,
     "description": "Write the 32-bit Access password, then verify using the new password if requested.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3871,
+    "line": 3874,
     "name": "ZKReader.set_kill_password",
     "kind": "method",
     "signature": "ZKReader.set_kill_password(self, new_password: bytes, *, target: TagTarget, access_password: bytes=ZERO_PASSWORD, verify: bool=True) -> CommandResult[bytes | None]",
     "async": true,
     "description": "Write the 32-bit Kill password; does not execute Kill or Lock.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3890,
+    "line": 3893,
     "name": "ZKReader.lock_tag",
     "kind": "method",
     "signature": "ZKReader.lock_tag(self, lock_target: int, protection: int, *, target: TagTarget, access_password: bytes=ZERO_PASSWORD) -> CommandResult[None]",
     "async": true,
     "description": "Apply native Gen2 protection to a specified target; permanent states are irreversible.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3903,
+    "line": 3906,
     "name": "ZKReader.kill_tag",
     "kind": "method",
     "signature": "ZKReader.kill_tag(self, kill_password: bytes, *, target: TagTarget) -> CommandResult[None]",
     "async": true,
     "description": "Execute irreversible Gen2 Kill on an explicit target with a nonzero 32-bit password.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3907,
+    "line": 3910,
     "name": "ZKReader.block_write",
     "kind": "method",
     "signature": "ZKReader.block_write(self, bank: MemoryBank, word_address: int, data: bytes, *, target: TagTarget | None=None, access_password: bytes=ZERO_PASSWORD) -> CommandResult[None]",
     "async": true,
     "description": "Use native BlockWrite within its independent frame budget; tag support is required.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3923,
+    "line": 3926,
     "name": "ZKReader.block_erase",
     "kind": "method",
     "signature": "ZKReader.block_erase(self, bank: MemoryBank, word_address: int, word_count: int, *, target: TagTarget | None=None, access_password: bytes=ZERO_PASSWORD) -> CommandResult[None]",
     "async": true,
     "description": "Erase 1..120 words using native BlockErase; tag support is required.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3939,
+    "line": 3942,
     "name": "ZKReader.select_tag",
     "kind": "method",
     "signature": "ZKReader.select_tag(self, mask: TagMask, *, antenna_mask: int=1, select_target: int=4, action: int=0, truncate: bool=False) -> CommandResult[None]",
     "async": true,
     "description": "Apply native Gen2 Select using a bit-addressed mask, target, action and antenna mask.",
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 3968,
-    "name": "Equivalence",
-    "kind": "class",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 3969,
-    "name": "Equivalence.VERIFIED",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
-  },
-  {
-    "file": "src/zk_rfid.py",
-    "line": 3970,
-    "name": "Equivalence.CONVERTED",
-    "kind": "constant",
-    "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 3971,
-    "name": "Equivalence.MULTI_STEP",
-    "kind": "constant",
+    "name": "Equivalence",
+    "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 3972,
-    "name": "Equivalence.APPROXIMATE",
+    "name": "Equivalence.VERIFIED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 3973,
-    "name": "Equivalence.UNSUPPORTED",
+    "name": "Equivalence.CONVERTED",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 3974,
-    "name": "Equivalence.UNVERIFIED",
+    "name": "Equivalence.MULTI_STEP",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 3975,
+    "name": "Equivalence.APPROXIMATE",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 3976,
+    "name": "Equivalence.UNSUPPORTED",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
     "line": 3977,
+    "name": "Equivalence.UNVERIFIED",
+    "kind": "constant",
+    "description": null,
+    "status": "implemented"
+  },
+  {
+    "file": "src/zk_rfid.py",
+    "line": 3980,
     "name": "CONTRACT",
     "kind": "constant",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 3994,
+    "line": 3997,
     "name": "RFMapping",
     "kind": "class",
     "description": "Caller-supplied, measured mapping, specific to both firmwares.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4002,
+    "line": 4005,
     "name": "RFMapping.require",
     "kind": "method",
     "signature": "RFMapping.require(self, nation_id: int) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4008,
+    "line": 4011,
     "name": "hex_epc",
     "kind": "function",
     "signature": "hex_epc(value: str) -> bytes",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4019,
+    "line": 4022,
     "name": "power_dict",
     "kind": "function",
     "signature": "power_dict(powers: tuple[int, ...]) -> dict[int, int]",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4023,
+    "line": 4026,
     "name": "tag_dict",
     "kind": "function",
     "signature": "tag_dict(report: TagReport) -> dict",
     "async": false,
-    "description": "Preserve raw measurements and label user-defined RSSI estimates.",
-    "status": "implemented; hardware unverified"
+    "description": "Preserve raw measurements and label project-defined RSSI estimates.",
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4047,
+    "line": 4050,
     "name": "unsupported",
     "kind": "function",
     "signature": "unsupported(operation: str)",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4064,
+    "line": 4067,
     "name": "NationAdapter",
     "kind": "class",
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4068,
+    "line": 4071,
     "name": "NationAdapter.open",
     "kind": "method",
     "signature": "NationAdapter.open(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4071,
+    "line": 4074,
     "name": "NationAdapter.close",
     "kind": "method",
     "signature": "NationAdapter.close(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4074,
+    "line": 4077,
     "name": "NationAdapter.get_sdk_info",
     "kind": "method",
     "signature": "NationAdapter.get_sdk_info(self)",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4078,
+    "line": 4081,
     "name": "NationAdapter.Query_Reader_Information",
     "kind": "method",
     "signature": "NationAdapter.Query_Reader_Information(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4081,
+    "line": 4084,
     "name": "NationAdapter.query_rfid_ability",
     "kind": "method",
     "signature": "NationAdapter.query_rfid_ability(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4084,
+    "line": 4087,
     "name": "NationAdapter.query_reader_power",
     "kind": "method",
     "signature": "NationAdapter.query_reader_power(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4088,
+    "line": 4091,
     "name": "NationAdapter.configure_reader_power",
     "kind": "method",
     "signature": "NationAdapter.configure_reader_power(self, antenna_powers: dict[int, int], persistence: bool=False)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4115,
+    "line": 4118,
     "name": "NationAdapter.build_antenna_mask",
     "kind": "method",
     "signature": "NationAdapter.build_antenna_mask(self, antenna_ids: list[int]) -> int",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4122,
+    "line": 4125,
     "name": "NationAdapter.save_antenna_mask",
     "kind": "method",
     "signature": "NationAdapter.save_antenna_mask(self, antenna_mask: int)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4125,
+    "line": 4128,
     "name": "NationAdapter.query_enabled_ant_mask",
     "kind": "method",
     "signature": "NationAdapter.query_enabled_ant_mask(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4145,
+    "line": 4148,
     "name": "NationAdapter.enable_ant",
     "kind": "method",
     "signature": "NationAdapter.enable_ant(self, ant_id: int, save=False)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4148,
+    "line": 4151,
     "name": "NationAdapter.disable_ant",
     "kind": "method",
     "signature": "NationAdapter.disable_ant(self, ant_id: int, save=False)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4151,
+    "line": 4154,
     "name": "NationAdapter.is_inventory_running",
     "kind": "method",
     "signature": "NationAdapter.is_inventory_running(self)",
     "async": false,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4154,
+    "line": 4157,
     "name": "NationAdapter.start_inventory_with_mode",
     "kind": "method",
     "signature": "NationAdapter.start_inventory_with_mode(self, antenna_ids: list[int], *, mode=InventoryMode.SCENARIO, config=InventoryConfig())",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4164,
+    "line": 4167,
     "name": "NationAdapter.run_inventory",
     "kind": "method",
     "signature": "NationAdapter.run_inventory(self, antenna_ids: list[int], callback, *, duration: float, mode=InventoryMode.SCENARIO)",
     "async": true,
     "description": "Callbacks run in the consumer task, outside RX; callback failure stops RF.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4185,
+    "line": 4188,
     "name": "NationAdapter.stop_inventory",
     "kind": "method",
     "signature": "NationAdapter.stop_inventory(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4188,
+    "line": 4191,
     "name": "NationAdapter.write_epc_to_target_auto",
     "kind": "method",
     "signature": "NationAdapter.write_epc_to_target_auto(self, target_tag_epc: str, new_epc_hex: str, *, access_pwd=0, timeout=3.0, verify=True)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4206,
+    "line": 4209,
     "name": "NationAdapter.select_profile",
     "kind": "method",
     "signature": "NationAdapter.select_profile(self, profile_id: int, *, mapping: RFMapping | None=None, persist=False)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4213,
+    "line": 4216,
     "name": "NationAdapter.get_profile",
     "kind": "method",
     "signature": "NationAdapter.get_profile(self)",
     "async": true,
     "description": "Result contains a native ZK ID; no NATION equivalence is implied.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4217,
+    "line": 4220,
     "name": "NationAdapter.query_rf_band",
     "kind": "method",
     "signature": "NationAdapter.query_rf_band(self)",
     "async": true,
     "description": "Result contains native Region fields, not NATION band codes.",
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4221,
+    "line": 4224,
     "name": "NationAdapter.set_rf_band",
     "kind": "method",
     "signature": "NationAdapter.set_rf_band(self, band_code: int, persist=True)",
@@ -3703,17 +3703,17 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4224,
+    "line": 4227,
     "name": "NationAdapter.set_beeper",
     "kind": "method",
     "signature": "NationAdapter.set_beeper(self, mode: int)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4230,
+    "line": 4233,
     "name": "NationAdapter.get_beeper",
     "kind": "method",
     "signature": "NationAdapter.get_beeper(self)",
@@ -3723,7 +3723,7 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4233,
+    "line": 4236,
     "name": "NationAdapter.set_filter_settings",
     "kind": "method",
     "signature": "NationAdapter.set_filter_settings(self, repeated_time_ms=0, rssi_threshold=0)",
@@ -3733,12 +3733,12 @@
   },
   {
     "file": "src/zk_rfid.py",
-    "line": 4236,
+    "line": 4239,
     "name": "NationAdapter.get_session",
     "kind": "method",
     "signature": "NationAdapter.get_session(self)",
     "async": true,
     "description": null,
-    "status": "implemented; hardware unverified"
+    "status": "implemented"
   }
 ]

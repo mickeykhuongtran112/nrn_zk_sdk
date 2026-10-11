@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,16 +8,27 @@ version = "0.2.0.dev1"
 description = "Native async Python SDK for ZK Gen2 UHF RFID readers"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "KhuongTran"}]
+keywords = ["rfid", "uhf", "gen2", "zk", "serial", "asyncio"]
 dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: OS Independent",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[project.urls]
+Repository = "https://github.com/mickeykhuongtran112/nrn_zk_sdk"
+Documentation = "https://github.com/mickeykhuongtran112/nrn_zk_sdk/blob/main/docs/README.md"
+Issues = "https://github.com/mickeykhuongtran112/nrn_zk_sdk/issues"
+
 [project.optional-dependencies]
 serial = ["pyserial>=3.5"]
-dev = ["build>=1", "pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.6"]
+dev = ["build>=1", "pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.6", "twine>=6"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

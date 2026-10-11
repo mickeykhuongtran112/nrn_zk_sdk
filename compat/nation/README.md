@@ -1,8 +1,17 @@
 # NATION reference
-nrn.py là bản nguyên trạng tại commit trong [UPSTREAM.md](UPSTREAM.md); license gốc ở [LICENSE](LICENSE). Hash source/license có baseline test. Không sửa driver này trong đợt phát triển native ZK.
 
-Driver upstream dùng blocking/threading và pyserial. Core/adapterZK không import nó. Wheel không chứa bản reference; sdist giữ reference+license phục vụ kiểm thử provenance từ clean source.
+This directory contains the upstream NATION driver for comparison and regression
+tests. Its origin and local changes are recorded in [UPSTREAM.md](UPSTREAM.md).
+The original [MIT license](LICENSE) is retained.
 
-mapping_cases.json có3conversioncase kiểm chứng offline và2unverifiedcaseRF/RSSI. Adapter runtime nằm src/zk_rfid/compat/nation. [Contract](../../docs/nation_comparison.md) mô tả rõ giới hạn; comparator không thay hardware comparison.
+The reference driver uses blocking I/O, threads, and pyserial. The native ZK SDK
+and its adapter do not import it. It is included in the source archive for
+provenance checks and excluded from the wheel.
 
-Không commit hoặc mởCOM. Khi bảo trì upstream sau này cần regression/evidence và CHANGELOG riêng; licenseNATION không tự áp dụng mãSDKZK.
+Comments, docstrings, and four diagnostic messages have been translated into
+English. Protocol logic is unchanged; this is a documented local revision,
+not a byte-identical upstream copy.
+
+[mapping_cases.json](mapping_cases.json) contains three offline conversions and
+two unverified RF/RSSI mappings. The runtime adapter is in
+[src/zk_rfid.py](../../src/zk_rfid.py). See the [adapter guide](../../docs/nation_comparison.md).

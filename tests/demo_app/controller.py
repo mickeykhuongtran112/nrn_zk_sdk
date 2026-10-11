@@ -29,7 +29,7 @@ class Controller:
     def __init__(self, log, defaults=None, transport_factory=None):
         self.log, self.defaults = (
             log,
-            defaults or {"port": "COM13", "baud": 115200, "ports": 1, "address": 0, "timeout": 5},
+            defaults or {"port": "COM3", "baud": 115200, "ports": 1, "address": 0, "timeout": 5},
         )
         self.transport_factory = transport_factory
         self.reader = None

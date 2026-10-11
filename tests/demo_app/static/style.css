@@ -1,5 +1,5 @@
-/* Graphite Light â€” Minimalism & Swiss Style, adapted for the RFID test console.
-   Source decisions and provenance: ../DESIGN.md. No remote fonts or assets. */
+/* Graphite Light: neutral styling for the RFID test console.
+   Design notes: ../DESIGN.md. No remote fonts or assets. */
 :root {
   color-scheme: light;
   --canvas: #f4f4f3;

@@ -1,4 +1,4 @@
-"""Export actual public Python symbols to the requested reviewable catalogue."""
+"""Generate the API index and machine-readable symbols from the SDK source."""
 
 import argparse
 import ast
@@ -34,7 +34,7 @@ def collect():
                 if name == "NationAdapter.set_rf_band"
                 else "transport interface contract"
                 if name.startswith("AsyncTransport")
-                else "implemented; hardware unverified"
+                else "implemented"
             )
             records.append(record)
 
@@ -77,17 +77,16 @@ def collect():
 def render(records):
     public = [r for r in records if r["name"].startswith("ZKReader.")]
     lines = [
-        "# Danh mục chức năng Python đã triển khai",
+        "# API index",
         "",
-        "Sinh từ AST bằng `python tools/export_symbols.py`. Tên, chữ ký và dòng nguồn lấy trực tiếp từ implementation.",
+        "Use `ZKReader` for device I/O. See [Python API](api.md) for results and lifecycle,",
+        "[compatibility](supported_devices.md) for deployment limits, and [examples](../examples/README.md) for common tasks.",
         "",
-        "Mức chứng cứ: manual V2.25/demo V6.8, unit/integration và runtime CPython/Pyodide. "
-        "**Chưa nghiệm thu toàn bộ phần cứng.** Người dùng đã báo 3 hardware tests PASS qua ảnh trên COM13/115200; "
-        "xem [phạm vi chứng cứ](demo_and_parity.md). Các giới hạn ở [ma trận hỗ trợ](supported_devices.md) và [errata](protocol/errata.md).",
+        "Generated from source with `python tools/export_symbols.py`; edit source docstrings to update descriptions.",
         "",
-        f"## API điều khiển ZKReader ({len(public)} symbol public)",
+        "## ZKReader",
         "",
-        "| Function/property | Chức năng | Implementation |",
+        "| Method / property | Purpose | Source |",
         "|---|---|---|",
     ]
     for r in public:
@@ -95,16 +94,23 @@ def render(records):
         lines.append(
             f"| `{r['name']}` | {description} | [{r['file']}:{r['line']}](../{r['file']}#L{r['line']}) |"
         )
-    lines += ["", "## Chữ ký public ZKReader", "", "```python"]
+    lines += ["", "<details>", "<summary>Method signatures</summary>", "", "```text"]
     for r in public:
         if "signature" in r:
             lines.append(("async " if r["async"] else "") + r["signature"])
     lines += [
         "```",
         "",
-        "## Symbols trong file SDK duy nhất",
+        "</details>",
         "",
-        "Bao gồm class, method, function và constant; mục vendor-tag được đánh dấu ngoài scope.",
+        "## Supporting symbols",
+        "",
+        "Types, transport interfaces, command builders, decoders, and adapter methods.",
+        "Module-level command builders return `Request` values without device I/O.",
+        "Hardware coverage is recorded in [validation](validation.md).",
+        "",
+        "<details>",
+        "<summary>All source symbols</summary>",
         "",
     ]
     current = None
@@ -114,6 +120,7 @@ def render(records):
             lines += ["", f"### {current}", ""]
         status = "" if r["status"].startswith("implemented") else " — **" + r["status"] + "**"
         lines.append(f"- **{r['kind']}** [`{r['name']}`](../{r['file']}#L{r['line']}){status}")
+    lines += ["", "</details>"]
     return "\n".join(lines) + "\n"
 
 
@@ -136,7 +143,7 @@ def main():
             raise SystemExit("Stale catalogue: " + ", ".join(stale))
     else:
         for path, text in outputs.items():
-            path.write_text(text, encoding="utf-8")
+            path.write_text(text, encoding="utf-8", newline="\n")
     print(
         json.dumps(
             dict(

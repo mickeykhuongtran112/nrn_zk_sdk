@@ -49,7 +49,7 @@ assert get_type_hints(sdk.InventoryConfig)["mask"] == sdk.TagMask | None
 assert pickle.loads(pickle.dumps(sdk.InventoryConfig())) == sdk.InventoryConfig()
 assert sdk.rssi_to_dbm(60) == -75 and sdk.rssi_to_dbm(110) == -25
 assert inspect.getfile(sdk.NationAdapter) == sdk.__file__
-transport = sdk.SerialTransport("COM13", 115200)
+transport = sdk.SerialTransport("COM3", 115200)
 assert transport._serial is None
 reader = sdk.ZKReader(transport)
 assert reader.state is sdk.ReaderState.DISCONNECTED

@@ -1,0 +1,22 @@
+name: Bug report
+description: Report an SDK integration or protocol issue.
+body:
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup
+      description: SDK/Python or browser version, OS, reader model/firmware, antenna count, and transport.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduce
+      description: Minimal code or commands, expected behavior, and actual result.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Result and diagnostics
+      description: Include native status, tag_error, outcome, and relevant reviewed trace bytes. Remove passwords, private tag IDs, and local paths.

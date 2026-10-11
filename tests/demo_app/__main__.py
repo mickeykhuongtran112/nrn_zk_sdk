@@ -1,4 +1,4 @@
-"""Launch with: python -m tests.demo_app --port COM13 --baud 115200 --ports 1."""
+"""Launch with: python -m tests.demo_app --port COM3 --baud 115200 --ports 1."""
 
 import argparse
 import time
@@ -10,7 +10,7 @@ from .server import Runtime, DemoServer
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--port", default="COM13", help="Default device port; Connect is always manual")
+    p.add_argument("--port", default="COM3", help="Default device port; Connect is always manual")
     p.add_argument("--baud", type=int, default=115200)
     p.add_argument("--ports", type=int, choices=(1, 4, 8, 16), default=1)
     p.add_argument("--address", type=lambda s: int(s, 0), default=0)

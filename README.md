@@ -1,88 +1,106 @@
 # ZK RFID SDK
 
-Async Python SDK for ZK-7180M/ZK-7182M Ex10 readers using RAIN UHF Gen2 / ISO 18000-6C. Includes reader configuration, inventory, tag memory access, automatic PC calculation for EPC writes, and TX/RX tracing. No vendor DLL required.
+An async Python SDK for ZK-7180M and ZK-7182M Ex10 UHF RFID readers. Read tags,
+configure the reader, and access Gen2 tag memory through a single Python module.
+The SDK implements the reader protocol directly and requires no vendor DLL.
 
-Requires **Python 3.11+**. The entire SDK is in [src/zk_rfid.py](src/zk_rfid.py).
+**Python 3.11+ · CPython and Pyodide · MIT license**
 
-## Integrate
+[Getting started](docs/getting_started.md) · [Examples](examples/README.md) ·
+[Python API](docs/api.md) · [Browser integration](web/README.md) ·
+[Compatibility](docs/supported_devices.md)
 
-Copy `src/zk_rfid.py` into your application and install the serial dependency:
+## Install
+
+From a checkout or extracted source archive:
 
 ```sh
-python -m pip install pyserial
+python -m pip install ".[serial]"
 ```
 
-Import everything directly from `zk_rfid`. No other project files are needed.
+For applications that vendor their dependencies, copy
+[`src/zk_rfid.py`](src/zk_rfid.py) and [LICENSE](LICENSE) into your project, then
+install `pyserial`. The SDK has no other runtime dependencies. Custom transports
+and browser applications do not need `pyserial`.
+
+## Read tags
+
+Connect an antenna and set the port, baud rate, and antenna count for your reader.
+This example uses `COM3` at 115200 baud; on Linux, use a path such as `/dev/ttyUSB0`.
 
 ```python
 import asyncio
-from zk_rfid import ZKReader, SerialTransport, ReaderCapabilities, InventoryConfig
+
+from zk_rfid import InventoryConfig, ReaderCapabilities, SerialTransport, ZKReader
 
 
 async def main():
     async with ZKReader(
-        SerialTransport("COM13", 115200),
+        SerialTransport("COM3", 115200),
         capabilities=ReaderCapabilities(antenna_ports=1),
     ) as reader:
         info = (await reader.get_reader_info()).require_success()
-        print(info)
+        print("Firmware:", info.firmware)
 
         result = await reader.inventory_once(
             InventoryConfig(antenna=1, scan_time_100ms=3)
         )
         for tag in result.reports:
-            print(tag.epc, tag.antenna, tag.rssi_raw)
-        print(result.termination_reason, result.complete)
+            print(tag.epc.hex().upper() if tag.epc else None, tag.antenna, tag.rssi_raw)
+        print("Round:", result.termination_reason, "complete:", result.complete)
 
 
 asyncio.run(main())
 ```
 
-Set `antenna_ports=4` for a four-port module, then select `antenna=1` through `4`. Answer uses one antenna per round; Scenario uses one antenna per session. Port count is configured explicitly, not detected automatically.
+Set `antenna_ports` to the physical port count. Antenna IDs start at 1; Answer
+inventory reads one antenna per round. A completed round describes the protocol
+transaction, not a guarantee that every tag in the RF field was read.
 
-Use `ZKReader` methods for device I/O. For custom transports or Pyodide, implement `AsyncTransport` instead of using `SerialTransport`.
+## Choose an integration
 
-## Browser / Web Serial
+| Application | Start here |
+|---|---|
+| Python service, desktop app, or test system | [Python guide](docs/getting_started.md) and [runnable examples](examples/README.md) |
+| JavaScript or TypeScript frontend | [Web Serial bridge](web/README.md), using the same Python SDK in Pyodide |
+| Reader evaluation without application code | [Local test console](tests/demo_app/README.md), with a built-in simulator |
+| Existing NATION application | [Adapter guide](docs/nation_comparison.md) |
 
-Use [web/zk-rfid-webserial.js](web/README.md) from JavaScript or TypeScript. It runs the same `zk_rfid.py` in Pyodide and connects directly through Web Serial, with tag events and native command results.
+The browser example runs from a static server:
 
 ```sh
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open [localhost:8000/examples/webserial/](http://localhost:8000/examples/webserial/) in Chrome or Edge. Select **115200**, **1** or **4** antenna ports, then **Connect** and choose COM13. Python only serves static files; no SDK backend runs. See the [example](examples/webserial/README.md) for inventory and automatic-PC EPC writes.
+Open [the Web Serial example](http://localhost:8000/examples/webserial/) in Chrome
+or Edge, click **Connect**, and select your reader. The first load downloads the
+pinned Pyodide runtime; see the bridge guide for offline hosting.
 
-## Python web test console
+## Documentation
 
-From the repository root, in Windows CMD:
+- [Inventory](docs/inventory_modes.md): Answer, Scenario, Real-time, FastID, and Mix.
+- [Tag memory](docs/tag_memory.md): memory map, targeting, EPC writes, and read-back.
+- [Results and recovery](docs/api.md): native errors, timeouts, and connection state.
+- [RSSI and phase](docs/phase_and_live_view.md): units and conversion conventions.
+- [Protocol reference](docs/protocol/zk_frame.md): framing, commands, and errata.
 
-```bat
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -e ".[dev,serial]"
-.venv\Scripts\python.exe -m tests.demo_app --port COM13 --baud 115200 --ports 1
+This is a development release. Software checks cover the protocol and lifecycle;
+hardware validation is limited to the sessions recorded in
+[validation](docs/validation.md). Check [compatibility](docs/supported_devices.md)
+for firmware-dependent features before integrating them.
+
+## Development
+
+```sh
+python -m pip install -e ".[dev,serial]"
+python -m pytest
 ```
 
-Open [localhost:8765](http://127.0.0.1:8765), click **Connect**, then select an operation. Use **Simulated reader** to test without hardware. For continuous reading, select **Inventory → start_inventory → scenario**.
+Hardware tests are opt-in. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete
+checks and repository conventions, and [CHANGELOG.md](CHANGELOG.md) for changes.
 
-- Use `--ports 4` for a four-port module or `--http-port 8766` if the web port is busy.
-- Release COM13 in other applications before connecting.
-- Tag writes require **Enable this tag write**. Use **Stop inventory → Disconnect** when finished.
-- Restart the Python server after SDK updates; reloading the browser is not enough.
+## License
 
-## Tests
-
-```bat
-.venv\Scripts\python.exe -m pytest -q
-```
-
-Hardware tests are excluded by default. Hardware validation is partial; see [validation](docs/validation.md) and [supported features](docs/supported_devices.md).
-
-## Reference
-
-- [API and result handling](docs/api.md)
-- [Function index](docs/functions_implemented.md)
-- [Tag memory and EPC writes](docs/tag_memory.md)
-- [Web demo guide](tests/demo_app/README.md)
-- [Examples](examples)
-
-A project license has not been selected yet. See [LICENSE](LICENSE).
+The SDK is independently maintained and released under the [MIT license](LICENSE).
+The NATION reference driver retains its [upstream license](compat/nation/LICENSE).
+Vendor manuals and binaries are not distributed with this project.

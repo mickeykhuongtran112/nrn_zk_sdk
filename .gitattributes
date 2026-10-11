@@ -1,6 +1,10 @@
 # Stable text checkouts on Windows and Linux.
 * text=auto eol=lf
 
-# Preserve the pinned third-party reference byte for byte.
-/compat/nation/nrn.py -text
+# Preserve the original third-party license byte for byte.
 /compat/nation/LICENSE -text
+
+*.svg text eol=lf
+*.png binary
+*.jpg binary
+*.gif binary

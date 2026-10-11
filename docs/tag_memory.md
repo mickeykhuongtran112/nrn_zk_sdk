@@ -1,31 +1,124 @@
-# Bộ nhớ và thao tác tag
-API dùng bytes và word16bit. Word address của memory không phải bit address của mask.
+# Tag memory
 
-| Bank | ID | Ghi chú |
-|---|---|---|
-| Reserved | 0 | Kill password word0..1, Access word2..3; mỗi password32bit |
-| EPC | 1 | CRC word0, PC word1, EPC từword2 |
-| TID | 2 | Mô tả chip/serial tùy tag; thường factory locked |
-| User | 3 | Có thể không tồn tại hoặc dung lượng nhỏ |
+Gen2 tags expose four memory banks. Memory commands address **16-bit words**;
+selection masks address **bits**. One word is two bytes, so EPC word 2 starts at
+bit 32 (`0x20`).
 
-read_memory dùng02/15,1..120word; write_memory dùng03/16,1..32word. Extended có start address16bit, tự chọn khi >255. SDK kiểm tra word count, address overflow, bytes chẵn và tổng frame; không chia nhỏ write hay retry tự động.
+![Gen2 tag memory banks with word offsets and password, PC, EPC, TID, and User regions](assets/tag-memory.svg)
 
-TagTarget chọn full EPC1..15word hoặc TagMask(bank1..3, bit_address0..16383, bit_length1..255, data). Bit thấp ngoài mask phải0. Không target nghĩa unfiltered; reader/tag quyết định tag được thao tác. Dùng full TID đủ phân biệt tag khi cần định danh ổn định.
+This is the layout used by the SDK's basic memory operations. Tag capacity,
+optional XPC fields, and protection rules depend on the chip; check its datasheet.
+The bank organization follows [GS1 Gen2](https://ref.gs1.org/standards/gen2/).
 
-## Ghi và xác nhận
+## Select a tag
 
-verify=True làm write -> read cùng một deadline, trả steps và confirmation. Write ACK + read đúng = read_back_verified; ACK + mismatch/error = partial. Host timeout sau TX chưa biết ghi xảy ra hay chưa = unknown; không tự retry. Cancel trong verify giữ ACK đã nhận và bước verify chưa hoàn thành ở last_result.
+Use a full EPC for a tag whose EPC will not change:
 
-write_epc thực hiện đọc PC -> giữ11bit không thuộc length -> ghi PC+EPC một lần từword1 -> verify. Không đụng CRCword0. EPC mới tối đa31word theo PC và write32word. Nếu target là EPC cũ, bắt buộc verification_target mới; TID mask ổn định thường phù hợp hơn. Không khẳng định write nhiều word là atomic trên tag.
+```python
+from zk_rfid import MemoryBank, TagMask, TagTarget
 
-write_epc_single sử dụng04, cần đúng một physical tag trong vùng RF, hiện giới hạn1..14word vì manual mâu thuẫn. Không dùng04 tự động thay targeted write.
+target = TagTarget(epc=bytes.fromhex("E20034120123456789000001"))
+```
 
-set_access_password ghi32bit ởReservedword2 và verify bằng password mới. set_kill_password ghiword0 và vẫn xác thực bằng Access password. Ghi password không tự Lock. Khi gọi write_memory trực tiếp chồng lên Access password, cần verification_password.
+For an EPC write, prefer a TID mask that uniquely identifies the intended tag and
+remains unchanged. Replace this example TID with one read from your test tag:
 
-## Select / Lock / Kill / Block
+```python
+tid = bytes.fromhex("E280116060000205DEADBEEF")
+target = TagTarget(mask=TagMask(MemoryBank.TID, 0, len(tid) * 8, tid))
+```
 
-select_tag mã hóa Gen2 Select bằng mask bit, select target, action, truncate và antenna mask. lock_tag có LockTarget và LockProtection, target tường minh. Permanent lock/unlock có thể không đảo được. kill_tag cần target và Kill password khác0; lệnh có tác dụng vĩnh viễn trên tag thực.
+A chip-family TID prefix may match several tags. Use enough identifying bits and
+verify uniqueness in your RF field. A missing target is unfiltered access, not
+automatic selection of a single tag.
 
-BlockWrite10 có budget riêng phụ thuộc độ dài EPC/mask; không áp giới hạn32word của03. BlockErase07 có1..120word, EPC bắt đầu từword1 trở lên. Cả hai phụ thuộc tag hỗ trợ optional command. Memory locked/overrun/power lỗi giữ nativeFC và nested tag_error.
+Full-EPC targets accept 1–15 words. Masks accept banks 1–3, bit addresses 0–16383,
+and 1–255 significant bits for tag targeting. Unused low bits in the last mask
+byte must be zero, and the mask must fit within the address range.
 
-SDK không triển khai NXP protection/QT/EM4325 chỉ từ tên chip. Các hàm thuộc tag_features báo unsupported, không nằm trong chức năng đã xác minh.
+## Read and write
+
+With an open `reader` and the target above:
+
+```python
+data = (await reader.read_memory(
+    MemoryBank.USER, word_address=0, word_count=2, target=target,
+)).require_success()
+print(data.hex().upper())
+
+result = await reader.write_memory(
+    MemoryBank.USER, word_address=0, data=bytes.fromhex("1234ABCD"),
+    target=target, verify=True,
+)
+result.require_success()
+print(result.confirmation)
+```
+
+Use a writable test tag with sufficient User memory for this example. Reads accept
+1–120 words; ordinary writes accept 1–32 words with an even byte count. The SDK
+selects extended opcodes `0x15`/`0x16` when the starting word address exceeds 255.
+`extended_format` can select the format explicitly. Frame size and address bounds
+are checked before transmission; the SDK does not split or retry writes.
+
+## Write an EPC
+
+```python
+result = await reader.write_epc(
+    bytes.fromhex("E20034120123456789000002"), target=target,
+)
+result.require_success()
+```
+
+![EPC write sequence: read PC, update length, write PC plus EPC, read back and compare](assets/epc-write.svg)
+
+`write_epc()` updates the PC length field while preserving its lower 11 bits, then
+writes PC and EPC together starting at EPC word 1. It does not write CRC word 0.
+Verification is enabled by default and shares the operation deadline. A multiword
+write is not guaranteed atomic by the SDK or tag.
+
+When selecting by the old EPC, provide a target for the new EPC explicitly:
+
+```python
+new_epc = bytes.fromhex("E20034120123456789000002")
+result = await reader.write_epc(
+    new_epc,
+    target=TagTarget(epc=bytes.fromhex("E20034120123456789000001")),
+    verification_target=TagTarget(epc=new_epc),
+)
+result.require_success()
+```
+
+The helper accepts up to 31 EPC words, subject to tag capacity and frame size.
+For EPCs longer than 15 words, use a stable mask because full-EPC targeting has a
+smaller limit. Native `write_epc_single()` uses opcode `0x04`, requires exactly one
+physical tag in the field, and is limited to 1–14 words; see [errata](protocol/errata.md).
+
+## Verification
+
+| Result | Interpretation |
+|---|---|
+| `read_back_verified` | Write acknowledged and selected read-back matches |
+| `partial` after ACK | Write acknowledged, but verification failed or mismatched |
+| `unknown` after TX | The write may have occurred; recover and inspect before deciding what to do next |
+
+The result retains individual `steps` and native errors. If a write changes the
+mask's selected memory, supply a new `verification_target`. Cancellation during
+verification preserves acknowledged steps in `reader.last_result`.
+
+## Passwords and protection
+
+Kill and Access passwords are each four bytes. `set_access_password()` writes
+Reserved words 2–3 and uses the new password for verification.
+`set_kill_password()` writes words 0–1 while authenticating with the Access password.
+Writing a password does not lock memory or execute Kill.
+
+Direct `write_memory()` calls overlapping the Access password require
+`verification_password` when verification is enabled. `lock_tag()` uses
+`LockTarget` and `LockProtection`; permanent protection can be irreversible.
+`kill_tag()` requires an explicit target and a nonzero Kill password and permanently
+disables a compliant tag.
+
+`block_write()` has a frame budget determined by the target length.
+`block_erase()` accepts 1–120 words and starts at word 1 or later for the EPC bank.
+Both depend on chip support. Native `0xFC` and its nested `tag_error` distinguish
+locked memory, address overrun, and other tag errors.

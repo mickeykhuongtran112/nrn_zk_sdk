@@ -1,32 +1,51 @@
-# Ma trận hỗ trợ
+# Compatibility
 
-0.1.0.dev1,2026-10-09. **Chưa có model/firmware/tag hardware verified trong project này.**
+The SDK targets ZK-7180M and ZK-7182M Ex10 readers using the Gen2/6C host protocol
+described in the UHF RFID Reader Series manual V2.25. Firmware options and tag-chip
+support affect which commands are usable.
 
-ZK-7180M/ZK-7182M theo plan dùng manual V2.25/demo Ex10 V6.8. ReaderCapabilities khai báo layout, không phải autodetect; caller chọn1/4/8/16port theo module thực. Default1 là cấu hình bảo thủ. Info giữ model_code/firmware bytes, không tự gán model.
+Hardware coverage is partial: a one-port Scenario/phase session and three reported
+hardware checks are recorded in [validation](validation.md). The retained session
+summary does not identify an exact model/firmware pair, so it is not a model-wide
+certification.
 
-| Chức năng | Python | Điều kiện |
+## Reader configuration
+
+Set `ReaderCapabilities(antenna_ports=...)` to 1, 4, 8, or 16 for the attached
+module. This selects wire layouts; it does not autodetect the model or validate
+firmware. `ReaderInfo` preserves model code and firmware bytes as returned.
+
+| Feature | Implementation | Conditions |
 |---|---|---|
-| Frame/CRC/parser/dispatcher | Implemented + tested | Một reader, timeout sau TX khóa connection |
-| Info/serial/address/baud/interface | Implemented | Baud transport phải hỗ trợ đổi; interface cần power cycle |
-| Power/write power/retries | Implemented |0..30dBm, số giá trị đúng port |
-| Antenna mux/check | Set1/4/8/16 implemented | Get full mask chỉ tới8port |
-| Answer EPC/TID/FastID/phase/statistics | Implemented | FastID cần tag hỗ trợ, measurement không calibrated |
-| Single/match EPC/buffer inventory | Implemented | Match1..196bit,offset+len<=496 |
-| Mix EPC+memory | Implemented tới31word | Len bit6 mâu thuẫn >62byte; dùng read_memory tới120word |
-| Scenario EPC/TID | Implemented start/stream/stop/restore | Auto-restore anten chỉ1/4/8port; EPC hoặc TID-only |
-| Scenario scene/phase | Implemented theo demo V6.8 | Cần firmware xác nhận |
-| Real-time/trigger/heartbeat | Implemented | Config75 hiện tại; mode76 persistent; active chỉ21/76/77 |
-| Read/write normal/extended | Implemented | Read1..120/write1..32word |
-| Targeted EPC/password/read-back | Implemented | Target ổn định/new target; không atomic |
-| Native WriteEPC04 | Implemented1..14word | Single physical tag, errata |
-| Select/Lock/Kill/BlockWrite/Erase | Implemented | Phụ thuộc chip/memory/lock/power |
-| CFG7/8/9/10/11/31 | Implemented | TagFocus cần tag phù hợp |
-| CFG25/29 | Raw Get + validated Set6/5byte | Caller xác nhận cfg25_length=6/cfg29_length=5; không pad10byte |
-| Region/profile/DRM | Implemented | Native IDs; chưa helper kHz band21/29 |
-| Buffer length/count/clear/read | Implemented | Buffer16port cần xác nhận Ant width |
-| GPIO/LED/buzzer | Implemented | Hai output theo phần nhất quán; module phải expose pin |
-| Temperature/return loss | Implemented | Cần sensor; return-loss Ant1..4,grid100/125kHz |
-| NXP protection/EAS,QT/EM4325 | Unsupported theo scope | Cần yêu cầu/chứng cứ chip riêng |
-| ISO18000-6B/NATION wire emulator | Ngoài scope | Không triển khai |
+| Framing, CRC, dispatcher | Available | One reader per connection; recovery required after uncertain exchanges |
+| Reader info, serial, address, baud, interface | Available | Transport must support baud changes; interface change needs power cycle |
+| Read/write power and retries | Available | 0–30 dBm; per-port arrays match the declared count |
+| Antenna selection and check | Set: 1/4/8/16 ports | Full-mask getter is limited to 8 ports |
+| Answer EPC, TID, FastID, phase, statistics | Available | FastID requires a compatible tag |
+| Single, EPC-match, buffered inventory | Available | EPC match: 1–196 bits, offset + length at most 496 |
+| Mix EPC + memory | Available | Up to 31 words; use memory reads for longer ranges |
+| Scenario EPC / TID | Start, stream, stop, restore | Automatic antenna restore limited to 1/4/8 ports |
+| Scenario scene sessions and phase | Available | Based on Ex10 V6.8; confirm on the deployed firmware |
+| Real-time, trigger, heartbeat | Available | Stored configuration; only info/mode operations while active |
+| Normal / extended memory | Available | Read 1–120 words; ordinary write 1–32 words |
+| EPC, passwords, read-back | Available | Stable or updated verification target; writes are not atomic |
+| Native WriteEPC `0x04` | Available | Exactly one physical tag; 1–14 words |
+| Select, Lock, Kill, BlockWrite, Erase | Available | Tag chip, capacity, protection, and available RF power |
+| CFG7/8/9/10/11/31 | Available | TagFocus requires a compatible tag |
+| CFG25/29 | Raw read; gated write | Explicitly select 6-/5-byte layouts after firmware confirmation |
+| Region, profile, DRM | Available | Native IDs; no frequency conversion for bands 21/29 |
+| Buffer length, count, clear, read | Available | 16-port reports require explicit antenna-field width |
+| GPIO, indicator, buzzer | Available | Pins and functions must be exposed by the module |
+| Temperature, return loss | Available | Sensor support; return loss limited to ANT1–4 and 100/125 kHz grids |
 
-Hardware_verified không tự bật từ tên model/unit test. Historical traces dùng làm nguồn vector, không đổi nhãn thành hardware test mới.
+## Not implemented
+
+NXP Privacy/EAS, Monza QT, EM4325, MarginRead, U9 batch lock, and tag-LED extensions
+do not have a supported command contract. Relay/OUT1–4 notification controls,
+custom-frequency tables, a dedicated Ex10 version query, network-module
+configuration, ISO 18000-6B, and NATION wire emulation are also outside the current
+implementation.
+
+See [vendor comparison](demo_and_parity.md) for the feature boundary and
+[errata](protocol/errata.md) for layout decisions. The `hardware_verified` capability
+is supplied by the integrator; software tests never enable it automatically.

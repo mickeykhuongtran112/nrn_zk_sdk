@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 KhuongTran
+
 """Standalone async SDK for ZK Gen2 UHF RFID readers (Python >= 3.11).
 
 This file is the canonical implementation: copy it into your application and
@@ -500,7 +503,7 @@ class ReaderCapabilities:
 # RSSI calibration and phase units
 # ==============================================================================
 
-# Vendor phase convention and explicitly user-defined RSSI mapping.
+# Vendor phase convention and project-defined RSSI estimate.
 
 
 PHASE_CONVERSION = "ex10_v6_8_demo_0.087deg_mod180"
@@ -508,9 +511,9 @@ RSSI_SOURCE = "user_linear_raw_minus_135"
 
 
 def rssi_to_dbm(raw: int) -> float:
-    """User-defined linear mapping: raw 60 -> -75 dBm, 110 -> -25 dBm.
+    """Project-defined RSSI estimate: raw 60 -> -75 dBm, 110 -> -25 dBm.
 
-    This is an estimate chosen by the user, not a vendor-calibrated reading.
+    This is a reference-point estimate, not a vendor-calibrated reading.
     All uint8 values use raw - 135; outside 60..110 this extrapolates without
     clamping. Decoded reports retain raw, source and an in-range flag.
     """
@@ -3305,7 +3308,7 @@ class ZKReader:
         )
 
     async def get_write_power(self) -> CommandResult[WritePower]:
-        """Get write power. Returns native status and confirmation."""
+        """Read the separate write-power enable flag and dBm value (0x7A)."""
         return await self._execute(get_write_power())
 
     async def set_write_power(self, power_dbm: int | None) -> CommandResult[None]:
@@ -3313,7 +3316,7 @@ class ZKReader:
         return await self._execute(set_write_power(power_dbm))
 
     async def get_write_retries(self) -> CommandResult[int]:
-        """Get write retries. Returns native status and confirmation."""
+        """Read the reader's write-retry count, 0..7 (0x7B)."""
         return await self._execute(write_retries())
 
     async def set_write_retries(self, count: int) -> CommandResult[int]:
@@ -3334,11 +3337,11 @@ class ZKReader:
         return replace(result, data=result.data.antenna_raw if result.ok else None)
 
     async def set_antenna_check(self, enabled: bool) -> CommandResult[None]:
-        """Set antenna check. Returns native status and confirmation."""
+        """Enable or disable the reader's antenna connection check (0x66)."""
         return await self._execute(set_antenna_check(enabled))
 
     async def get_antenna_check(self) -> CommandResult[bool]:
-        """Get antenna check. Returns native status and confirmation."""
+        """Read the antenna-check flag from reader information (0x21)."""
         result = await self.get_reader_info()
         return replace(result, data=result.data.antenna_check if result.ok else None)
 
@@ -3380,7 +3383,7 @@ class ZKReader:
         return await self._execute(set_interface(interface))
 
     async def get_region(self) -> CommandResult[Region]:
-        """Get region. Returns native status and confirmation."""
+        """Read the native band ID and minimum/maximum channel indices (0x9E)."""
         return await self._execute(get_region())
 
     async def set_region(
@@ -3400,15 +3403,15 @@ class ZKReader:
         return await self._execute(profile(profile_id, persist=persist, extended=extended_format))
 
     async def get_drm(self) -> CommandResult[bool]:
-        """Get drm. Returns native status and confirmation."""
+        """Read whether dense-reader mode is enabled (0x90)."""
         return await self._execute(drm())
 
     async def set_drm(self, enabled: bool) -> CommandResult[bool]:
-        """Set drm. Returns native status and confirmation."""
+        """Enable or disable dense-reader mode (0x90)."""
         return await self._execute(drm(enabled))
 
     async def set_buzzer(self, enabled: bool) -> CommandResult[None]:
-        """Set buzzer. Returns native status and confirmation."""
+        """Enable or disable the reader's tag-read buzzer (0x40)."""
         return await self._execute(set_buzzer(enabled))
 
     async def pulse_indicator(
@@ -3439,11 +3442,11 @@ class ZKReader:
         )
 
     async def get_return_loss_threshold(self) -> CommandResult[int]:
-        """Get return loss threshold. Returns native status and confirmation."""
+        """Read the antenna return-loss threshold in dB (0x6E)."""
         return await self._execute(return_loss_threshold())
 
     async def set_return_loss_threshold(self, threshold_db: int) -> CommandResult[int]:
-        """Set return loss threshold. Returns native status and confirmation."""
+        """Set the antenna return-loss threshold to 0..20 dB (0x6E)."""
         return await self._execute(return_loss_threshold(threshold_db))
 
     async def get_config(
@@ -3472,62 +3475,62 @@ class ZKReader:
         )
 
     async def get_scan_parameters(self) -> CommandResult[ScanParameters]:
-        """Get scan parameters. Returns native status and confirmation."""
+        """Read scan interval, antenna dwell, and count (CFG7)."""
         return await self.get_config(7)
 
     async def set_scan_parameters(
         self, parameters: ScanParameters, *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set scan parameters. Returns native status and confirmation."""
+        """Set scan interval in 10 ms units, dwell in 100 ms units, and count (CFG7)."""
         return await self.set_config(7, encode_scan(parameters), persist=persist)
 
     async def get_tag_focus(self) -> CommandResult[bool]:
-        """Get tag focus. Returns native status and confirmation."""
+        """Read the TagFocus enable flag (CFG8)."""
         return await self.get_config(8)
 
     async def set_tag_focus(self, enabled: bool, *, persist: bool = False) -> CommandResult[None]:
-        """Set tag focus. Returns native status and confirmation."""
+        """Enable or disable TagFocus for compatible tags (CFG8)."""
         return await self.set_config(8, bytes((boolean(enabled, "enabled"),)), persist=persist)
 
     async def get_query_parameters(self) -> CommandResult[QueryParameters]:
-        """Get query parameters. Returns native status and confirmation."""
+        """Read Q, session, and phase settings for Scenario inventory (CFG9)."""
         return await self.get_config(9)
 
     async def set_query_parameters(
         self, parameters: QueryParameters, *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set query parameters. Returns native status and confirmation."""
+        """Set Q, session, and phase for Scenario inventory (CFG9)."""
         return await self.set_config(9, encode_query(parameters), persist=persist)
 
     async def get_tid_parameters(self) -> CommandResult[TIDParameters]:
-        """Get tid parameters. Returns native status and confirmation."""
+        """Read the Scenario TID word address and count (CFG10)."""
         return await self.get_config(10)
 
     async def set_tid_parameters(
         self, parameters: TIDParameters, *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set tid parameters. Returns native status and confirmation."""
+        """Set Scenario TID selection; word_count=0 selects EPC instead (CFG10)."""
         return await self.set_config(10, encode_tid(parameters), persist=persist)
 
     async def get_inventory_mask(self) -> CommandResult[TagMask]:
-        """Get inventory mask. Returns native status and confirmation."""
+        """Read the bank, bit address, length, and data of the inventory mask (CFG11)."""
         return await self.get_config(11)
 
     async def set_inventory_mask(
         self, mask: TagMask | None, *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set inventory mask. Returns native status and confirmation."""
+        """Set the inventory selection mask, or pass None to clear it (CFG11)."""
         data = (mask or TagMask(MemoryBank.EPC, 32, 0, b"")).encode()
         return await self.set_config(11, data, persist=persist)
 
     async def get_custom_profiles(self) -> CommandResult[tuple[int, ...]]:
-        """Get custom profiles. Returns native status and confirmation."""
+        """Read the three custom RF profile IDs (CFG31)."""
         return await self.get_config(31)
 
     async def set_custom_profiles(
         self, profile_ids: tuple[int, int, int], *, persist: bool = False
     ) -> CommandResult[None]:
-        """Set custom profiles. Returns native status and confirmation."""
+        """Set three native 16-bit RF profile IDs (CFG31)."""
         return await self.set_config(31, encode_profiles(profile_ids), persist=persist)
 
     async def set_real_time_config(self, config: RealTimeConfig) -> CommandResult[None]:
@@ -3552,7 +3555,7 @@ class ZKReader:
             return result
 
     async def get_heartbeat_interval(self) -> CommandResult[int]:
-        """Get heartbeat interval. Returns native status and confirmation."""
+        """Read the heartbeat interval in 30 s units; zero means disabled (0x78)."""
         return await self._execute(heartbeat())
 
     async def set_heartbeat_interval(self, interval_30s: int) -> CommandResult[int]:
@@ -3560,7 +3563,7 @@ class ZKReader:
         return await self._execute(heartbeat(interval_30s))
 
     async def get_buffer_length(self) -> CommandResult[int]:
-        """Get buffer length. Returns native status and confirmation."""
+        """Read the maximum stored ID length, 16 or 62 bytes (0x71)."""
         return await self._execute(get_buffer_length())
 
     async def set_buffer_length(self, max_bytes: int) -> CommandResult[None]:
@@ -3568,7 +3571,7 @@ class ZKReader:
         return await self._execute(set_buffer_length(max_bytes))
 
     async def get_buffer_count(self) -> CommandResult[int]:
-        """Get buffer count. Returns native status and confirmation."""
+        """Read the number of tag records in the reader buffer (0x74)."""
         return await self._execute(get_buffer_count())
 
     async def clear_buffer(self) -> CommandResult[None]:
@@ -4021,7 +4024,7 @@ def power_dict(powers: tuple[int, ...]) -> dict[int, int]:
 
 
 def tag_dict(report: TagReport) -> dict:
-    """Preserve raw measurements and label user-defined RSSI estimates."""
+    """Preserve raw measurements and label project-defined RSSI estimates."""
     value = {
         "epc": report.epc.hex().upper() if report.epc is not None else None,
         "tid": report.tid.hex().upper() if report.tid is not None else None,

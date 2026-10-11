@@ -1,7 +1,18 @@
-# Phạm vi
+# Scope
 
-Native host protocol ZK Gen2/6C, reader/RF/antenna/inventory/memory/buffer/I/O/diagnostics. Python async, CPython và Pyodide qua transport inject.
+This project maintains a native Python implementation of the ZK Gen2/6C host
+protocol: reader configuration, RF and antenna controls, inventory, tag memory,
+buffer operations, GPIO, and diagnostics.
 
-Ngoài scope core:6B, nghiệp vụ kiểm kho/POS, extension/service mạng dùng chung, NATION wire emulator, RF mapping tự suy đoán. Theo yêu cầu mới ngày 2026-10-09, có GUI HTML local trong tests/demo_app để gọi SDK qua CPython/serial; app này nằm ngoài core/wheel và không đổi contract transport inject. NXP/Monza-QT/EM4325 cần contract tag riêng. FastID/TagFocus opt-in, không bảo đảm tag hỗ trợ.
+The core runs on CPython and Pyodide through an injected asynchronous byte
+transport. `SerialTransport` provides the desktop serial connection; the
+[Web Serial bridge](../web/README.md) connects browser applications.
+The [local test console](../tests/demo_app/README.md) is a separate CPython tool.
 
-[Catalogue](functions_implemented.md) là implementation thực, [matrix](supported_devices.md) ghi điều kiện. License release chưa chọn; không publish/commit trong đợt này.
+The SDK does not implement application workflows such as checkout, attendance,
+or warehouse reconciliation. ISO 18000-6B, a NATION wire emulator, shared network
+services, and unsupported chip-specific extensions are outside its scope.
+
+Supported commands and deployment conditions are listed in
+[compatibility](supported_devices.md). Method signatures are in the
+[API index](functions_implemented.md).

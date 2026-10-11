@@ -1,32 +1,45 @@
-# Inventory benchmark — dự kiến
+# RF benchmarking
 
-Chưa có kết quả benchmark. Tài liệu này định nghĩa phép thử, không công bố mode nào luôn nhanh/đủ hơn.
+No comparative RF benchmark is published yet. Use this procedure to measure
+application performance without confusing reader reports, distinct IDs, and
+physical tag coverage.
 
-## Điều kiện phải ghi
+## Setup
 
-Model/firmware, mode, RF profile, region/frequency, power, anten/thứ tự/dwell, Q/session/target, TagFocus/FastID, kiểu dữ liệu/count, baud, filter/report policy, chip tag, vị trí/hướng/vật liệu và số tag trong vùng.
+Record reader model and firmware, antenna layout and dwell, region/frequency,
+power, RF profile, Q/session/target, TagFocus/FastID, data type and length, baud,
+filter/report policy, tag chips, known tag population, position, orientation,
+and nearby materials.
 
-So Answer/Scenario ở điều kiện tương đương. Tách giới hạn RF, UART, host scheduling, parser và tốc độ cập nhật giao diện của công cụ đo. Report/s không đồng nghĩa unique tags/s; EPC trùng không được dùng để đếm chắc chắn số tag vật lý.
+Compare modes with equivalent settings. Separate RF acquisition, UART throughput,
+host scheduling, parser behavior, and UI update rate. Manage tag inventoried state
+between runs so one mode does not inherit an advantage.
 
-## Metrics
+## Measurements
 
-- Tỷ lệ ID đúng tìm được trong cửa sổ thời gian so với tập ground truth.
-- Stray tags/false positives ngoài vùng.
-- First-read latency, thời gian đạt mục tiêu và thời gian tag cuối cùng.
-- EPC+TID completeness nếu cả hai bắt buộc; EPC-only thành công chưa đủ.
-- Độ lặp lại trên nhiều lần thử và nhiều cách xếp/hướng tag.
-- Queue depth, lost/delayed reports, CPU/memory và throughput UART.
-
-Không có tag mới trong một khoảng chỉ là stop heuristic. Expected count không thay thế đối chiếu đúng ID. Trạng thái inventoried của tag giữa hai lượt phải được quản lý để tránh bias.
-
-## Ca ứng dụng để thử
-
-| Ca | Phương án xuất phát để đo |
+| Metric | Purpose |
 |---|---|
-| Kiểm kho đông tag | Scenario EPC, thử session/target giảm đọc lặp |
-| Bàn tính tiền | Phiên giới hạn, kiểm soát stray reads và hàng thêm/bớt |
-| Chấm công đi qua | Scenario; latency, che bởi cơ thể, duplicate event và vùng đọc |
-| Thùng đọc | Thu thập, đổi anten/profile khi cần, đối chiếu danh sách |
-| Tunnel/băng tải | Cửa sổ sensor/encoder; T khả dụng xấp xỉ chiều dài vùng hiệu dụng/tốc độ |
+| Correct IDs / ground-truth IDs within the time window | Identification completeness |
+| Unexpected IDs | Stray reads outside the intended zone |
+| First-read and last-required-tag latency | Responsiveness and time to completion |
+| EPC + TID coverage | Completeness when both identifiers are required |
+| Repeated runs and tag arrangements | Repeatability |
+| Queue depth, drops, CPU, memory, UART rate | Host and transport limits |
 
-Đây là ca benchmark, không đưa logic hóa đơn/chấm công hoặc phân kiện vào core SDK. Các mã preset của reader khác không được sao chép sang ZK chỉ vì tên tương tự.
+Report distributions across repeated trials rather than a single best result.
+A quiet interval is only a stopping heuristic. An expected count cannot replace
+matching the actual IDs, and duplicated EPCs prevent physical-tag counting by EPC
+alone.
+
+## Application cases
+
+| Case | Starting point for evaluation |
+|---|---|
+| Dense inventory | Scenario EPC; compare session/target settings and repeated reads |
+| Checkout surface | Bounded reads, stray-read control, items added or removed |
+| Walk-through identification | Latency, body shadowing, duplicate events, zone boundary |
+| Enclosed read chamber | Antenna/profile schedule and known-list reconciliation |
+| Conveyor / tunnel | Sensor or encoder window; available time ≈ effective zone length / speed |
+
+These are measurement scenarios. Business decisions and event reconciliation
+belong in the application, outside the SDK.

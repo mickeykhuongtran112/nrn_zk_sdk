@@ -372,7 +372,7 @@ function renderEvents() {
   const atBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 40;
   const elements = selected.map(e => {
     const trace = e.trace || {};
-    const detail = trace.raw || trace.detail || e.operation || e.error?.message || e.detail || (e.report ? (e.report.epc || e.report.tid || "heartbeat") + " · RSSI raw " + (e.report.rssi_raw ?? "—") + (e.report.rssi_dbm == null ? "" : " · " + e.report.rssi_dbm + " dBm (user mapping)") : "");
+    const detail = trace.raw || trace.detail || e.operation || e.error?.message || e.detail || (e.report ? (e.report.epc || e.report.tid || "heartbeat") + " · RSSI raw " + (e.report.rssi_raw ?? "—") + (e.report.rssi_dbm == null ? "" : " · " + e.report.rssi_dbm + " dBm (reference estimate)") : "");
     const row = make("tr", {}, make("td", {}, clock(e.wall_time)),
       make("td", {}, make("span", {class: "event-label event-" + e.kind}, e.kind)),
       make("td", {}, trace.exchange_id == null ? e.job_id ? "job " + e.job_id : "—" : "#" + trace.exchange_id),

@@ -61,7 +61,7 @@ const result = await reader.call("read_memory", {
 - Bytes are hex strings; dataclasses are objects; enums use their string/integer values.
 - Results preserve `outcome`, `status`, `tag_error`, `raw_data`, `confirmation` and `steps`. A resolved Promise can contain `failure`, `partial` or `unknown`; inspect the result.
 - Python exceptions reject with `ZKSDKError`, preserving the native exception name, reader state, transmitted flag and result when available. Writes are never retried automatically.
-- `tag` reports retain RSSI raw, the user-defined dBm estimate, phase units and conversion metadata. Throttle DOM painting, not the report counter.
+- `tag` reports retain RSSI raw, the project-defined dBm estimate, phase units and conversion metadata. Throttle DOM painting, not the report counter.
 - The transport yields to browser tasks periodically when RX is already buffered, keeping Stop and rendering responsive without discarding reports.
 - `set_baudrate` is rejected before TX on this transport. Configure both reader and browser baud beforehand; Web Serial does not change baud on an open port.
 - After timeout/unplug, reset or resynchronize the module before `connect({ recover: true })`. This flag asserts recovery; it does not reset hardware. The in-memory recovery guard cannot survive a page reload.

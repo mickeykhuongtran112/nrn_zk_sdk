@@ -778,7 +778,7 @@ class NRNReader:
 
         return result
 
-    # write for me function save antennmask from frontend
+    # Save the antenna mask supplied by the frontend.
     def save_antenna_mask(self, antenna_mask: int) -> bool:
         """Save the antenna mask for the reader.
         :param antenna_mask: 32-bit integer representing the antenna mask.
@@ -1100,19 +1100,19 @@ class NRNReader:
 
     def _receive_inventory_loop_optimized(self):
         """
-        Nhận dữ liệu inventory tối ưu: buffer, tách frame, không bỏ sót tag.
+        Receive inventory data using a buffer and extract complete frames.
         """
         buffer = b""
         while self._inventory_running:
             try:
-                raw = self.receive(128)  # Đọc nhiều bytes hơn/lần
+                raw = self.receive(128)  # Read a larger chunk per call
 
                 if not raw:
                     time.sleep(0.01)
                     continue
                 buffer += raw
                 frames = self.extract_valid_frames(buffer)
-                # Xóa khỏi buffer các bytes đã xử lý thành frame
+                # Remove bytes already consumed as complete frames
                 if frames:
                     last_frame = frames[-1]
                     idx = buffer.find(last_frame) + len(last_frame)
@@ -1201,8 +1201,8 @@ class NRNReader:
 
     def receive_response(self, mid: int, timeout: float = 1.0) -> dict:
         """
-        Nhận frame phản hồi từ đầu đọc NRN tương ứng với MID yêu cầu.
-        Trả về dict: {mid, status, data}
+        Receive the NRN response frame matching the requested MID.
+        Return a dictionary: {mid, status, data}
         """
         import time
 
@@ -1226,13 +1226,13 @@ class NRNReader:
                         data = parsed["data"][1:] if len(parsed["data"]) > 1 else b""
                         return {"mid": mid, "status": status, "data": data}
                 except Exception as e:
-                    self.logger.debug(f" Lỗi parse frame phản hồi: {e}")
+                    self.logger.debug(f" Response frame parse error: {e}")
                     continue
 
-            # Nếu không có frame hợp lệ, tiếp tục chờ
+            # Keep waiting if no valid frame is available
             time.sleep(0.01)
 
-        raise TimeoutError(f" Không nhận được phản hồi MID=0x{mid:02X} sau {timeout} giây")
+        raise TimeoutError(f" No response for MID=0x{mid:02X} after {timeout} seconds")
 
     def _receive_inventory_loop(self):
         while self._inventory_running:
@@ -1833,11 +1833,11 @@ class NRNReader:
 
     def parse_reader_power_response(self, payload: bytes):
         """
-        Phân tích phản hồi từ lệnh MID=0x02 (Query Reader Power)
-        Payload là danh sách các cặp (Antenna ID, Power)
+        Decode the MID=0x02 response (Query Reader Power).
+        The payload contains (antenna ID, power) pairs.
         """
         if len(payload) % 2 != 0:
-            raise ValueError("Payload không hợp lệ, độ dài phải là bội số của 2")
+            raise ValueError("Invalid payload: length must be a multiple of 2")
 
         antenna_power_list = []
 
@@ -1910,13 +1910,13 @@ class NRNReader:
 
     def build_antenna_mask(self, antenna_ids: list[int]) -> int:
         """
-        Chuyển danh sách số ăng-ten (1-based) thành giá trị mask 32-bit
-        Ví dụ: [1,2,3,4] → 0x0000000F
+        Convert one-based antenna IDs to a 32-bit mask.
+        Example: [1, 2, 3, 4] -> 0x0000000F
         """
         mask = 0
         for aid in antenna_ids:
             if not (1 <= aid <= 32):
-                raise ValueError(f"Antenna ID {aid} ngoài phạm vi hợp lệ (1-32)")
+                raise ValueError(f"Antenna ID {aid} is outside the valid range (1-32)")
             mask |= 1 << (aid - 1)
         return mask
 
@@ -2011,7 +2011,7 @@ class NRNReader:
             self.logger.error(f" Failed to get profile: {e}")
             return {"error": str(e)}
 
-    # Inside your NRNReader class
+    # Reader RF configuration helpers.
     def query_rf_band(self):
         RF_BAND_CODES = {
             0: "CN 920-925 MHz",

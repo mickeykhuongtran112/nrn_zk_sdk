@@ -1,26 +1,50 @@
-# Quan hệ với Nextwaves NATION
-Bản upstream nguyên trạng ở compat/nation/nrn.py, commit d416b0d3bd5a103cf6b1833b13f0c88e9dfbe24b. Hash nguồn và license có regression test. Native ZK và adapter không import hoặc đóng gói nrn.py vào wheel.
+# NATION adapter
 
-Mục tiêu là mức độ tổ chức SDK: codec/transport/lifecycle/config/tag/inventory, examples, diagnostics và tests. Adapter này có contract async mới; không drop-in thay driver blocking/threading NATION.
+`NationAdapter` provides familiar NATION-style method names over the native ZK
+reader. It is asynchronous and is not a drop-in replacement for the blocking
+upstream `NRNReader`.
 
-| Contract | Trạng thái hiện tại |
+```python
+from zk_rfid import NationAdapter
+
+adapter = NationAdapter(reader)  # An open ZKReader.
+powers = (await adapter.query_reader_power()).require_success()
+print(powers)  # {1: 20, ...}
+```
+
+The reference driver is kept under [compat/nation](../compat/nation/README.md).
+The runtime adapter neither imports it nor emulates NATION wire frames.
+
+## Mappings
+
+| Operation | Behavior |
 |---|---|
-| SDK/reader information, capability | Chuyển cấu trúc, giữ dữ liệu và evidence native |
-| Power dictionary port->dBm | Read-modify-write, giữ các port không được yêu cầu đổi |
-| Antenna IDs/mask, enable/disable/save | Chuyển bitmask; getter16port chưa verified |
-| Inventory | Async session; callback sync/async ngoài RX; chọn một port/session |
-| EPC hex / targeted EPC write | Hex lossless, readPC/write/verify; target mới sau đổi EPC |
-| Memory | Dùng trực tiếp native reader API; không dựng NATION wire frame |
-| Profile / band getter | Native ZK ID và Region; không khẳng định tương đương NATION |
-| Profile setter | Yêu cầu RFMapping confirmed kèm evidence, do caller cung cấp |
-| RF band setter | Unverified; không áp mapping đoán |
-| RSSI-dBm | Approximate: chuyển tiếp mapping ZK do người dùng đặt `raw - 135`, kèm raw/source/in-range. Chưa xác minh tương đương RF với NATION |
-| Phase | Native ZK có begin/end raw, độ/radian theo convention demo Ex10 V6.8; không khẳng định tương đương phase NATION. Xem [nguồn](phase_and_live_view.md) |
-| Beeper | Quiet và beep-per-tag; beep-after-inventory unsupported |
-| Beeper getter / native filter setting | Unsupported trong contract adapter |
+| SDK / reader information | Preserves native data and capability metadata |
+| Power dictionary | Converts port → dBm; partial updates preserve other ports |
+| Antenna IDs / masks | Converts masks and enable/disable operations; 16-port getter remains restricted |
+| Inventory | Async session; sync or async callbacks run outside the RX task |
+| EPC strings and writes | Lossless hex conversion; native PC/read/write/verify sequence |
+| Memory access | Use `ZKReader` directly |
+| Profile / band getters | Return native ZK IDs and regions |
+| Profile setter | Requires an explicit, confirmed `RFMapping` with supporting evidence |
+| RF band setter | Rejected because no verified mapping is defined |
+| RSSI / phase | Preserves ZK raw values and [conversion metadata](phase_and_live_view.md) |
+| Beeper | Quiet and beep-per-tag supported; beep-after-inventory and getter unsupported |
+| NATION filter settings | Unsupported |
 
-CommandResult giữ native status, nested tag_error, outcome và steps. Không đổi mọi lỗi về boolean false; giữ nguồn RSSI quy đổi và không tạo PC giả. Duration callback runner dùng giây; callback failure chạy stop trong finally.
+Results retain native status, nested tag errors, and multi-step outcomes. A
+callback failure triggers session cleanup; callback runner durations are seconds.
 
-compare_results.py đọc mapping_cases.json:3 conversion case có expected độc lập (hex/power/ZK TX),2 case unverified (RF/RSSI). Comparator là công cụ offline; không chứng minh hai reader tương đương RF. R2000/E710 khác radio/firmware; Tari/BLF/encoding/session và hiệu năng cần đo với cùng điều kiện.
+Equal profile numbers do not establish equivalent Tari, BLF, encoding, receiver
+behavior, or RF performance across reader families. Confirm mappings on the
+deployed hardware under the same tag and antenna conditions.
 
-Không sửa nrn.py trong đợt triển khai native ZK; các thay đổi upstream sau này cần evidence, regression và CHANGELOG riêng.
+## Offline comparison
+
+```sh
+python tools/compare_results.py
+```
+
+The [mapping cases](../compat/nation/mapping_cases.json) include three independently
+specified conversions (hex, power, and ZK TX) and two unverified RF/RSSI mappings.
+Passing this comparison validates conversion behavior, not RF equivalence.

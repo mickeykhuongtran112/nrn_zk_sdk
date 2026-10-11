@@ -19,7 +19,10 @@ jobs:
       - run: python -m pytest
       - run: python tools/export_symbols.py --check
       - run: python tools/compare_results.py
+      - run: python tools/check_repository.py
       - run: python -m build
+      - run: python -m twine check dist/*
+      - run: python tools/check_repository.py --dist dist
   pyodide:
     runs-on: ubuntu-latest
     steps:

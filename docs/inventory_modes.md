@@ -1,34 +1,97 @@
-# Inventory: mode và loại dữ liệu
-Đã triển khai phần mềm theo V2.25 và demo V6.8; chưa xác minh RF trên module trong project.
+# Inventory
 
-| Mode | Start / dữ liệu / stop | API và cấu hình |
+Use Answer for a bounded scan, Scenario for a managed Ex10 stream, and Real-time
+when the reader should use its stored autonomous or trigger configuration.
+
+| Mode | Start and stop | Configuration |
 |---|---|---|
-| Answer từng lượt | 01, hoặc 19 Mix; nhiều response; status kết thúc | inventory_once(InventoryConfig(...)) |
-| Answer liên tục | Host lặp các round; 93 ngắt riêng 01, không có ACK93 | start_inventory(InventoryMode.ANSWER) |
-| Scenario Ex10 | 50 / EE / 51; start ACK không phải completion | start_inventory(InventoryMode.SCENARIO) |
-| Real-time | 75 cấu hình; 76=1 chạy, 76=0 dừng; EE report | set_real_time_config rồi start_inventory(REAL_TIME) |
-| Trigger | 76=2, cùng config75; input trigger do reader xử lý | start_inventory(REAL_TIME, trigger=True) |
-| Buffered | 18 ghi buffer; 72 lấy các frame; 74 count,73 clear | inventory_to_buffer, read_buffer |
-| Single / EPC match | 0F / 1A | inventory_single, inventory_matching_epc |
+| Answer round | `inventory_once()`; finishes on the terminal response | `InventoryConfig` for each round |
+| Answer session | `start_inventory(InventoryMode.ANSWER)`; host repeats rounds | One antenna per round |
+| Scenario | `start_inventory(InventoryMode.SCENARIO)`; `0x50 → 0xEE → 0x51` | Temporary query, TID, mask, and antenna configuration |
+| Real-time | `start_inventory(InventoryMode.REAL_TIME)`; `0x76=1`, stop with `0x76=0` | Stored `RealTimeConfig` set with `set_real_time_config()` |
+| Trigger | Real-time session with `trigger=True`; `0x76=2` | Reader input wiring and stored configuration |
+| Buffered | `inventory_to_buffer()`, then `read_buffer()` | Caller specifies the stored data kind |
+| Single / EPC match | `inventory_single()` / `inventory_matching_epc()` | Native `0x0F` / `0x1A` |
 
-## Loại dữ liệu
+## Continuous reading
 
-- EPC: report EPC; không tự tạo PC hoặc TID.
-- TID: Answer dùng AdrTID/LenTID; Scenario dùng CFG10, LenTID=1..15. Report là TID-only.
-- FastID: bit5 Q của 01; khi tag hỗ trợ, bit7 Len báo EPC ghép TID96bit. Tag không hỗ trợ có thể chỉ trả EPC; thiếu TID không được bịa.
-- Mix: 19, EPC và memory là hai record liên tiếp có sequence/antenna. Decoder ghép có kiểm tra; thiếu memory vẫn giữ EPC và đánh dấu partial. Giới hạn hiện tại 31 word bởi errata Len/phase.
-- Phase: Answer giữ raw4byte; Mix/Scenario có begin/end raw16bit theo demo và frequency24bit kHz. Không quy đổi radian.
+With an open `reader`, this session reads for five seconds and then stops:
 
-Scenario không có contract FastID/Mix đã xác minh. Real-time dùng config75 đã lưu: q/session/mask/TID/filter khác CFG9/10/11. SDK kiểm tra data kind với getter77; từ chối phase/statistics flags không được hỗ trợ. Các field khác trong InventoryConfig không thay config75.
+```python
+import asyncio
+from zk_rfid import InventoryConfig, InventoryMode, TagReport
 
-## Completion và điều phối
+session = await reader.start_inventory(
+    InventoryMode.SCENARIO,
+    config=InventoryConfig(antenna=1, phase=True),
+)
+try:
+    async with asyncio.timeout(5):
+        async for event in session:
+            if isinstance(event, TagReport):
+                print(event.epc, event.rssi_raw)
+except TimeoutError:
+    pass
+finally:
+    outcome = await session.stop()
+    print(outcome.termination_reason, outcome.dropped_count)
+```
 
-03 là còn frame;01 hoàn tất;02 device timeout;04 buffer full. Nếu bật statistics, tiếp tục đợi26 sau terminal tag frame. FB là không có tag. Complete chỉ nói về giao dịch protocol; không phải xác nhận tất cả physical tag đã được đọc.
+Scenario snapshots CFG9/10/11 and antenna selection, applies volatile settings,
+and reads them back before starting. After a stop ACK, it restores and verifies
+the snapshot. Automatic antenna restoration is available for 1-, 4-, and 8-port
+layouts; the 16-port getter remains unresolved.
 
-Một RX task duy nhất. Session có queue hữu hạn và consumer async iterator. QueueOverflow ghi dropped_count; không drop âm thầm. Heartbeat là event riêng, không tính là tag. Callback của adapter chạy trong consumer task.
+A session selects one antenna. To scan multiple ports, schedule separate sessions
+and inspect each stop result before starting the next. The SDK does not silently
+cycle all antennas.
 
-Scenario snapshot CFG9/10/11, ghi volatile và đọc lại trước50; tạm chọn một antenna theo config. Sau51 ACK, khôi phục snapshot và đọc lại. Getter antenna16port chưa đủ bằng chứng, nên orchestration tự khôi phục giới hạn <=8port. Lỗi cleanup được báo, không trả success giả.
+## Tag data
 
-93 chỉ gửi khi01 đang pending; không tạo pending93. Mix19 chờ round kết thúc. Real-time stop bằng76=0, có side effect lưu mode. EE đến sau stop ACK làm connection unknown để tránh lẫn report với phiên kế tiếp.
+| Data | Behavior |
+|---|---|
+| EPC | Returns the reported EPC; does not fabricate PC or TID |
+| TID | Answer uses the requested TID word range; Scenario uses CFG10, 1–15 words |
+| FastID | Answer `0x01`; compatible tags append a 96-bit TID; other tags may return EPC only |
+| Mix | `0x19`; pairs EPC and memory records using sequence and antenna; up to 31 memory words |
+| Phase | Supported report layouts retain begin/end values and frequency; see [measurements](phase_and_live_view.md) |
 
-Dùng async context của session hoặc finally: await session.stop(). Cancel host không tương đương stop reader. Đặt scan time hữu hạn; scan=0 yêu cầu caller quản lý stop/deadline. Default deadline tăng theo scan_time_100ms + 250ms margin, timeout explicit là toàn bộ ngân sách kể cả chờ lock.
+Scenario supports EPC or TID-only data. FastID and Mix are not defined for its
+managed session contract. Mix records without their matching memory data remain
+visible and make the outcome partial.
+
+Real-time uses the reader's current `0x75` configuration. The SDK reads `0x77`
+to interpret EPC/TID reports and rejects unsupported phase/statistics requests.
+Other Answer fields in `InventoryConfig` do not reconfigure Real-time mode.
+Both Real-time configuration and working-mode changes are persistent.
+
+## Completion and stopping
+
+Answer status `0x03` means more frames, `0x01` means completion, `0x02` means
+device timeout, and `0x04` means buffer full. Statistics requests also wait for
+`0x26`. Status `0xFB` means no tag. Completion confirms the protocol exchange;
+it does not establish that all physical tags were found.
+
+- Answer `0x01` stops with `0x93`, which has no independent ACK.
+- Mix `0x19` has no asynchronous stop command; it finishes the current round.
+- Scenario stops with `0x51` and restores configuration after its ACK.
+- Real-time stops by storing Answer mode with `0x76=0`.
+
+Cancelling the host task is not a device stop. Always clean up the session and
+inspect its result. A report after a stop ACK faults the connection so stale
+data cannot enter the next session. See [recovery](api.md#recovery).
+
+## Timing and throughput
+
+`scan_time_100ms` is in 100 ms units. Use a finite scan time unless your application
+explicitly manages interruption and deadlines; zero requests an unlimited scan.
+The default deadline accounts for the requested scan time with a 250 ms margin.
+An explicit timeout covers the entire operation, including waiting for the lock.
+
+The dispatcher has one RX consumer and each session has a bounded event queue.
+Overflow raises `QueueOverflow` and increments `dropped_count`. Heartbeats are
+separate events and do not count as tags. Keep processing lightweight or hand
+reports to an application queue.
+
+For RF performance comparisons, use the [benchmark procedure](inventory_benchmark.md).
+Report rate alone is not a measure of tag completeness.

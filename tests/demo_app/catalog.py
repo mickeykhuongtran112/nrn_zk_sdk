@@ -139,7 +139,7 @@ LIMITATIONS = [
     {
         "feature": "RSSI dBm / phase units / NATION RF mapping",
         "status": "conditional",
-        "reason": "RSSI uses the user-defined raw - 135 mapping (60..110 to -75..-25 dBm), with raw/source/range retained. Phase follows the Ex10 demo convention. Absolute RF calibration and NATION RF equivalence remain unverified.",
+        "reason": "RSSI uses the project-defined raw - 135 mapping (60..110 to -75..-25 dBm), with raw/source/range retained. Phase follows the Ex10 demo convention. Absolute RF calibration and NATION RF equivalence remain unverified.",
     },
 ]
 

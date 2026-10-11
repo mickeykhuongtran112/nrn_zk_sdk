@@ -1,6 +1,6 @@
-include README.md CHANGELOG.md LICENSE pyproject.toml MANIFEST.in
+include README.md CHANGELOG.md CONTRIBUTING.md LICENSE pyproject.toml MANIFEST.in
 include src/zk_rfid.py
-recursive-include docs *.md *.json
+recursive-include docs *.md *.json *.svg
 recursive-include examples *.py *.html *.css *.js *.md
 recursive-include web *.py *.js *.ts *.md
 recursive-include tools *.py
@@ -15,4 +15,9 @@ prune Mode_research
 prune .venv
 prune artifacts
 prune tmp
-global-exclude __pycache__ *.py[cod] plan_agent*.md
+prune vendor
+prune captures
+prune logs
+prune node_modules
+prune .github
+global-exclude __pycache__ *.py[cod] plan_agent*.md .env .env.* *.pem *.key *.p12 *.pfx *.dll *.exe *.so *.dylib
