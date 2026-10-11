@@ -1,4 +1,4 @@
-include README.md CHANGELOG.md LICENSE plan_agent.md pyproject.toml MANIFEST.in
+include README.md CHANGELOG.md LICENSE pyproject.toml MANIFEST.in
 include src/zk_rfid.py
 recursive-include docs *.md *.json
 recursive-include examples *.py
@@ -7,10 +7,11 @@ recursive-include tests *.py *.md *.mjs *.cjs *.html *.css *.js
 recursive-include fixtures *.md *.json *.hex
 include compat/nation/nrn.py compat/nation/LICENSE compat/nation/UPSTREAM.md compat/nation/README.md compat/nation/CHANGELOG.md compat/nation/mapping_cases.json
 prune local_data
+prune .codex
 prune Protocol_ZK
 prune Protocol_NATION
 prune Mode_research
 prune .venv
 prune artifacts
 prune tmp
-global-exclude __pycache__ *.py[cod]
+global-exclude __pycache__ *.py[cod] plan_agent*.md

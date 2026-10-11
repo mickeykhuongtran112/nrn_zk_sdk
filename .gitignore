@@ -1,4 +1,6 @@
-# Private working material (entire directory)
+# Local planning, assistant state, and private working material
+plan_agent*.md
+.codex/
 /local_data/
 
 # Existing private folders retained in place during the initial scaffold
@@ -10,6 +12,7 @@
 .venv/
 venv/
 env/
+node_modules/
 .env
 .env.*
 !.env.example

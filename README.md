@@ -1,104 +1,78 @@
 # ZK RFID SDK
 
-SDK Python native async cho ZK-7180M/ZK-7182M thuộc họ Ex10, phạm vi RAIN UHF Gen2/ISO18000-6C. Core tự tạo và giải mã protocol ZK, không phụ thuộc DLL hãng hoặc driver NATION.
+Async Python SDK for ZK-7180M/ZK-7182M Ex10 readers using RAIN UHF Gen2 / ISO 18000-6C. Includes reader configuration, inventory, tag memory access, automatic PC calculation for EPC writes, and TX/RX tracing. No vendor DLL required.
 
-**Toàn bộ implementation nằm trong [src/zk_rfid.py](src/zk_rfid.py).** Đây là file nguồn duy nhất để sửa, review và tích hợp: gồm models/errors, CRC/frame/parser, command builders/decoders, transport, dispatcher, inventory, `ZKReader` và `NationAdapter`. Các phần có tiêu đề để tìm nhanh trong editor; không cần bước sinh hoặc ghép file.
+Requires **Python 3.11+**. The entire SDK is in [src/zk_rfid.py](src/zk_rfid.py).
 
-**Đã triển khai SDK và GUI kiểm thử; chưa nghiệm thu toàn bộ phần cứng.** Ngoài 3 hardware tests PASS do người dùng cung cấp, đã kiểm tra Scenario có phase trên COM13/115200/1-port: 7.594 reports, Stop thành công, hiển thị RSSI dBm và phase. Xem [biên bản kiểm tra trên module thật](docs/hardware_live_view_check.md).
+## Integrate
 
-- [Danh mục function/class/constant và chữ ký API](docs/functions_implemented.md): sinh từ mã nguồn, theo dạng Symbols yêu cầu.
-- [GUI demo: cài đặt, thao tác COM13, log và mô phỏng](tests/demo_app/README.md).
-- [Đối chiếu mức đầy đủ với NATION và demo C# ZK](docs/demo_and_parity.md).
-- [API và contract kết quả](docs/api.md), [ma trận hỗ trợ](docs/supported_devices.md).
-- [Kiểm thử](docs/validation.md), [nguồn và errata](docs/protocol/errata.md).
-- [Adapter NATION](docs/nation_comparison.md), [kế hoạch](plan_agent.md).
+Copy `src/zk_rfid.py` into your application and install the serial dependency:
 
-## Tích hợp bằng một file
-
-Python >=3.11. Sao chép **chỉ `src/zk_rfid.py`** vào cùng thư mục với chương trình của bạn:
-
-```text
-your_app/
-├── app.py
-└── zk_rfid.py
-```
-
-Nếu dùng COM trên CPython, cài dependency serial:
-
-```powershell
+```sh
 python -m pip install pyserial
 ```
 
-Không cần mang theo `tests/`, `tools/`, `compat/`, hoặc cài package `zk-rfid-sdk` khi đã copy file. API vẫn là async/await; Pyodide dùng transport async do ứng dụng cung cấp. Các hàm cấp module tạo `Request` không tự gửi lệnh; dùng các method của `ZKReader` để điều khiển thiết bị.
-
-## Cài đặt để phát triển hoặc chạy demo
-
-Python >=3.11. Core không có dependency ngoài; serial là extra của CPython.
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python -m pip install -e ".[dev,serial]"
-.\.venv\Scripts\python -m pytest -q
-```
+Import everything directly from `zk_rfid`. No other project files are needed.
 
 ```python
 import asyncio
 from zk_rfid import ZKReader, SerialTransport, ReaderCapabilities, InventoryConfig
 
+
 async def main():
     async with ZKReader(
-        SerialTransport("COM13", 115200),  # Thay bằng cổng/baud thực tế.
+        SerialTransport("COM13", 115200),
         capabilities=ReaderCapabilities(antenna_ports=1),
-        timeout=3.0,
     ) as reader:
-        print((await reader.get_reader_info()).require_success())
-        result = await reader.inventory_once(InventoryConfig(scan_time_100ms=3))
+        info = (await reader.get_reader_info()).require_success()
+        print(info)
+
+        result = await reader.inventory_once(
+            InventoryConfig(antenna=1, scan_time_100ms=3)
+        )
         for tag in result.reports:
-            print(tag.epc, tag.tid, tag.rssi_raw)
+            print(tag.epc, tag.antenna, tag.rssi_raw)
         print(result.termination_reason, result.complete)
+
 
 asyncio.run(main())
 ```
 
-Import/constructor không mở COM. Một reader sở hữu một transport và một RX task. Pyodide inject transport async; cùng source đã chạy qua [harness](tests/runtime/README.md).
+Set `antenna_ports=4` for a four-port module, then select `antenna=1` through `4`. Answer uses one antenna per round; Scenario uses one antenna per session. Port count is configured explicitly, not detected automatically.
 
-Từ `0.2.0.dev1`, mọi import SDK dùng `from zk_rfid import ...`, kể cả `SerialTransport`, `NationAdapter`, `FrameParser` và errors. Các đường dẫn con cũ như `zk_rfid.transports.serial` hoặc `zk_rfid.models` đã được bỏ. Nếu đang dùng editable install của bản cũ, chạy lại lệnh `pip install -e` ở trên và khởi động lại tiến trình Python/demo.
+Use `ZKReader` methods for device I/O. For custom transports or Pyodide, implement `AsyncTransport` instead of using `SerialTransport`.
 
-## GUI thử nghiệm
+## Run the web demo
 
-```powershell
-.\.venv\Scripts\python.exe -m tests.demo_app --port COM13 --baud 115200 --ports 1
+From the repository root, in Windows CMD:
+
+```bat
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -e ".[dev,serial]"
+.venv\Scripts\python.exe -m tests.demo_app --port COM13 --baud 115200 --ports 1
 ```
 
-Mở http://127.0.0.1:8765. Connect mở COM; chọn Simulated reader để thử không cần phần cứng. Đủ đường gọi 74 public method (72 trong menu + open/close), log native TX/RX/status, bảng EPC/TID và export JSONL/CSV. Xem [hướng dẫn](tests/demo_app/README.md).
+Open [localhost:8765](http://127.0.0.1:8765), click **Connect**, then select an operation. Use **Simulated reader** to test without hardware. For continuous reading, select **Inventory → start_inventory → scenario**.
 
-## Chức năng
+- Use `--ports 4` for a four-port module or `--http-port 8766` if the web port is busy.
+- Release COM13 in other applications before connecting.
+- Tag writes require **Enable this tag write**. Use **Stop inventory → Disconnect** when finished.
+- Restart the Python server after SDK updates; reloading the browser is not enough.
 
-| Nhóm | Đã triển khai |
-|---|---|
-| Core | CRC/frame/parser, resync có diagnostics, deadline, single RX, serial tùy chọn |
-| Reader | Info/serial/address/baud/scan time/interface |
-| Inventory | Answer EPC/TID/FastID/Mix, single/match EPC, statistics, Scenario, Real-time/trigger/heartbeat, stop theo mode |
-| Tag | Read/write normal/extended, mask/full EPC, PC/EPC/password, read-back, Select/Lock/Kill/BlockWrite/Erase |
-| RF | Power chung/từng port, write power/retry, antenna mux/check, region/channel/profile16bit/DRM |
-| Ex10 | CFG7/8/9/10/11/31; CFG25/29 có điều kiện xác nhận dialect |
-| Buffer/I/O | Inventory/read/count/clear/length, GPIO/LED/buzzer, temperature/return loss |
-| Tools | Examples, console/capture/replay/comparator, xuất symbols, HTML test console và structured trace |
-| NATION | Baseline nguyên trạng; adapter async giữ native result/error, không tự map RF |
+## Tests
 
-Các giới hạn cụ thể ở ma trận hỗ trợ, đặc biệt CFG25/29, Mix>31word và một số layout16port. SDK không suy ra capability tag/antenna từ tên chip E710.
-
-## Kiểm chứng và phát hành
-
-```powershell
-python -m ruff check src tests tools examples
-python -m ruff format --check src tests tools examples
-python -m pytest -q
-python tools/compare_results.py
-python tools/export_symbols.py --check
-python -m build
+```bat
+.venv\Scripts\python.exe -m pytest -q
 ```
 
-Hardware tests mặc định bị loại; cần chỉ định COM và điều kiện tag. License phát hành mã ZK chưa chọn; LICENSE được giữ nguyên. MIT của NATION chỉ áp dụng bản tham chiếu đó. Chưa phát hành package lên PyPI.
+Hardware tests are excluded by default. Hardware validation is partial; see [validation](docs/validation.md) and [supported features](docs/supported_devices.md).
 
-local_data/ được ignore, không là dependency của core/tests và không đóng gói. GUI cục bộ trong tests/demo_app là phần mở rộng theo yêu cầu mới; HTTP/threads nằm ngoài core và wheel SDK.
+## Reference
+
+- [API and result handling](docs/api.md)
+- [Function index](docs/functions_implemented.md)
+- [Tag memory and EPC writes](docs/tag_memory.md)
+- [Web demo guide](tests/demo_app/README.md)
+- [Examples](examples)
+
+A project license has not been selected yet. See [LICENSE](LICENSE).
