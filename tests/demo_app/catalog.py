@@ -91,6 +91,8 @@ CHOICES = {
     "number": [7, 8, 9, 10, 11, 16, 25, 29, 31],
 }
 HELP = {
+    "antenna_mask": "Scenario only. Blank uses Inventory Antenna. Bit 0 = ANT1; 15 (0x0F) selects ANT1-4.",
+    "antenna_sequence": "Answer/FastID only. JSON port list, e.g. [1, 2, 3, 4]. Blank/null uses Inventory Antenna; scan time must be nonzero for multiple ports.",
     "target": "Explicit full EPC or mask. TID selection should identify one physical tag.",
     "verification_target": "Post-write target if EPC or mask changes; blank keeps original target.",
     "access_password": "32-bit hex; default 00000000. Not the Kill password.",
@@ -198,7 +200,8 @@ def field_for(operation, param):
         else "inventory"
         if name == "config" and operation != "set_real_time_config"
         else "json"
-        if name in ("region", "parameters", "profile_ids", "config") or isinstance(value, dict)
+        if name in ("region", "parameters", "profile_ids", "config", "antenna_sequence")
+        or isinstance(value, dict)
         else "nullable_bool"
         if name == "extended_format" and value is None
         else "hex"
@@ -214,7 +217,7 @@ def field_for(operation, param):
         else "json"
         if name == "mask" and operation != "set_antennas"
         else "number"
-        if isinstance(value, (int, float)) or name in ("timeout", "power_dbm")
+        if isinstance(value, (int, float)) or name in ("timeout", "power_dbm", "antenna_mask")
         else "text"
     )
     choices = CHOICES.get(name)
@@ -314,6 +317,14 @@ def convert(operation, arguments):
         raise ValidationError(str(e)) from e
     result = dict(arguments)
     for key, value in list(result.items()):
+        # Older console forms submitted empty strings for these optional fields.
+        if (
+            key in ("antenna_mask", "antenna_sequence")
+            and isinstance(value, str)
+            and not value.strip()
+        ):
+            result[key] = None
+            continue
         if value is None:
             continue
         if key in (

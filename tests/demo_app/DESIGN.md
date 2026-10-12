@@ -6,9 +6,25 @@ status text remains visible independently of color.
 
 ## Structure
 
-Connection settings lead into reader state, command/result panels, the tag table,
-and transaction log. Navigation groups operations by reader configuration, RF and
-antennas, inventory, tag memory, buffer, and diagnostics.
+Connection settings collapse after connection. Inventory opens with three tasks:
+continuous EPC, continuous FastID and a single scan. Antenna checkboxes translate
+to the selected task's native mask or ordered sequence. Raw protocol controls are
+kept in All APIs; changing a task cannot retain an incompatible port argument.
+
+Connection discovery resolves model code through the Ex10 V6.8 reader-type table
+and checks the per-port power response in Answer mode. All guided pages use the
+resolved SDK capability, not the initial CLI port count or enabled mask. A manual
+override remains explicit. Failed discovery closes the connection; no RF, antenna
+or Work Mode settings are written automatically.
+
+Antenna/power and RF settings use separate cards with explicit Read and Save/Apply
+actions. Writes are followed by read-back; failed verification keeps the write
+acknowledgement visible. Per-port values start blank until read. Start does not
+save antenna selection. Configuration controls lock while reading or applying.
+
+The main task, Start/Stop and observations take priority. Query settings, request
+JSON, native result and transaction log use progressive disclosure. Other command
+groups remain available for tag memory, Ex10 settings, buffers and diagnostics.
 
 At 1280 px and above, command and result panels use two columns. Smaller screens
 stack them. Tables and logs scroll within their own regions. Tag selection and
@@ -21,9 +37,12 @@ Tokens are defined in `static/style.css`. Fonts use Segoe UI/system-ui for contr
 and Cascadia Code/Consolas/monospace for data; no remote fonts are loaded.
 Motion is limited to short transitions and respects `prefers-reduced-motion`.
 
-The initial style research used
-[UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/tree/50d8a7de0900119855614541f15a1a616691eb33).
-The console layout, tokens, and behavior are maintained in this repository.
+Task grouping and supported-setting visibility were informed by
+[Zebra 123RFID's reader configuration](https://docs.zebra.com/us/en/rfid/123rfid-desktop/c-123rfid-desktop-application-features/c-123rfid-desktop-online-reader-configuration.html).
+Save and Apply are separate from run controls, consistent with its
+[configuration workflow](https://docs.zebra.com/us/en/rfid/123rfid-desktop/c-123rfid-desktop-saving-an-online-config.html).
+The layout is maintained here; no vendor RF settings or hardware capabilities
+are inferred from another reader's interface.
 
 ## Live updates
 

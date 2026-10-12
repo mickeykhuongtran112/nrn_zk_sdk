@@ -34,7 +34,9 @@ function icon(name) {
   }
   return svg;
 }
-const groupIcons = {Reader:'reader', 'RF & antenna':'antenna', Inventory:'scan', 'Tag memory':'tag', 'Ex10 config':'settings', 'Real-time':'pulse', Buffer:'buffer', 'I/O & diagnostics':'diagnostics', 'All APIs':'grid'};
+const groupIcons = {Reader:'reader', 'Antenna & power':'antenna', 'RF settings':'settings', 'RF & antenna':'antenna', Inventory:'scan', 'Tag memory':'tag', 'Ex10 config':'settings', 'Real-time':'pulse', Buffer:'buffer', 'I/O & diagnostics':'diagnostics', 'All APIs':'grid'};
+let guided = null;
+const guidedPages = ['Inventory', 'Antenna & power', 'RF settings'];
 let token, catalog = [], group = "Reader", selected, readers = {}, cursor = 0, events = [], paused = false;
 let snapshot = null, lastResultKey = "", advancedOverride = null, selectedTarget = null, source = false, polling = false;
 let selectedTagKey = null, lastEventsView = '';
@@ -45,6 +47,8 @@ let liveFailure = 'Waiting for live stream';
 const titles = {
   "Reader": "Read identity and configure the connected module.",
   "RF & antenna": "Native power, antenna masks, channel tables and RF profiles.",
+  "Antenna & power": "Select enabled ports and set transmit power for each antenna.",
+  "RF settings": "Read, configure and verify frequency plans and reader profiles.",
   "Inventory": "Observe EPC / TID reports and control the complete inventory lifecycle.",
   "Tag memory": "Explicit tag selection, word addressing and verified memory operations.",
   "Ex10 config": "Read and write native extended configuration; persistence is explicit.",
@@ -77,6 +81,24 @@ async function action(operation, args = {}, intent = null) {
   $("resultMeta").textContent = "Job " + accepted.job_id + " · " + operation + " · waiting for SDK result";
   return accepted;
 }
+async function completedAction(operation, args = {}) {
+  const accepted = await action(operation, args);
+  for (;;) {
+    const job = await (await api('/api/job?id=' + encodeURIComponent(accepted.job_id), {signal: AbortSignal.timeout(8000)})).json();
+    if (job.state !== 'running') {
+      // Use the exact job, not the last-result slot shared with other controls.
+      if (job.state !== 'success') {
+          const detail = job.result?.diagnostics?.join('; ');
+          const error = new Error(job.error?.message || `${operation}: ${job.state}${job.result?.status != null ? ' (status ' + hex(job.result.status) + ')' : ''}${detail ? ' — ' + detail : ''}`);
+        error.job = job; throw error;
+      }
+      try { renderSnapshot(await (await api('/api/snapshot?tags=0', {signal: AbortSignal.timeout(8000)})).json()); }
+      catch (_) { /* The acknowledged result remains available; regular polling restores state. */ }
+      return job.result;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+}
 function labelChoice(name, value) {
   const maps = {bank: ["0 · Reserved", "1 · EPC", "2 · TID", "3 · User"],
     lock_target: ["0 · Kill password", "1 · Access password", "2 · EPC", "3 · TID", "4 · User"],
@@ -103,7 +125,7 @@ function control(type, value, choices, name = "") {
   const read = () => {
     if (type === "bool") return node.checked;
     if (type === "nullable_bool") return node.value === "" ? null : node.value === "true";
-    if (type === "json") return JSON.parse(node.value || "null");
+    if (type === "json") return JSON.parse(node.value.trim() || "null");
     if (type === "number" || choices && typeof choices[0] === "number") {
       if (node.value.trim() === "") return null;
       const number = Number(node.value);
@@ -202,6 +224,13 @@ function renderOperation() {
 }
 function chooseGroup(name) {
   group = name;
+  const isGuided = guidedPages.includes(name);
+  $("guidedWorkspace").classList.toggle("hidden", !isGuided);
+  $("workspace").classList.toggle("workspace-guided", isGuided);
+  $("commandCard").classList.toggle("hidden", isGuided);
+  $("nativeResultDetails").open = !isGuided;
+  $("tagsPanel").classList.toggle("hidden", !['Inventory', 'Tag memory', 'All APIs'].includes(name));
+  $("logPanel").open = name === 'All APIs';
   $("coveragePanel").classList.toggle("hidden", name !== "Support & evidence");
   $("workspace").classList.toggle("hidden", name === "Support & evidence");
   $("groupTitle").textContent = name;
@@ -212,6 +241,7 @@ function chooseGroup(name) {
     if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   if (name === "Support & evidence") return;
+  if (isGuided) { guided.show(name); updateButtons(); return; }
   const commands = catalog.filter(c => name === "All APIs" || c.group === name);
   $("operation").replaceChildren(...commands.map(c => make("option", {value: c.name}, c.name)));
   $("commandCount").textContent = commands.length + " operations";
@@ -220,22 +250,37 @@ function chooseGroup(name) {
 function updateButtons() {
   const connected = !!snapshot?.connected, busy = !!snapshot?.busy, bad = !!snapshot?.fault || !!snapshot?.recovery_required;
   $("connectBtn").disabled = connected || busy; $("disconnectBtn").disabled = !connected || !!snapshot.control_busy;
-  for (const id of ["port", "baud", "ports", "address", "timeout", "simulate", "refreshPorts", "model", "firmware", "cfg25", "cfg29", "bufferWidth"]) $(id).disabled = connected || busy;
-  $("runBtn").disabled = !connected || (busy && selected?.name !== "stop_inventory") || bad;
+  for (const id of ["port", "baud", "ports", "autoPorts", "address", "timeout", "simulate", "refreshPorts", "model", "firmware", "cfg25", "cfg29", "bufferWidth"]) $(id).disabled = connected || busy;
+  $("ports").disabled = connected || busy || ($("autoPorts").checked && !$("simulate").checked);
+  $("runBtn").disabled = !connected || ((busy || guided?.busy) && selected?.name !== "stop_inventory") || bad;
   $("stopBtn").disabled = !connected || bad || !!snapshot.control_busy || !(["starting", "inventorying", "stopping"].includes(snapshot.state) || [1, 2].includes(snapshot.working_mode));
+  guided?.update(snapshot);
+}
+function connectionSummary(s) {
+  if (!s.connected) return 'Select a serial reader or simulator';
+  const c = s.connection, device = c.simulate ? 'Simulator' : c.port;
+  if (c.ports_source === 'detecting') return `${device} · detecting antenna ports…`;
+  const model = c.reported_model ? ` · ${c.reported_model}` : '';
+  const method = c.ports_source === 'manual' ? 'manual' : c.ports_source ? 'detected' : 'declared';
+  return `${device}${model} · ${c.ports} port${c.ports === 1 ? '' : 's'} (${method}) · ${s.baud || c.baud} baud`;
 }
 function renderSnapshot(s) {
-  if (!snapshot?.connected && s.connected) {
+  if (s.connected && (!snapshot?.connected || snapshot.connection?.ports_source === 'detecting')) {
+    if (s.connection?.ports_source !== 'detecting') $("connectionPanel").open = false;
     selectedTarget = null;
     selectedTagKey = null;
     if (readers.target?.assign) { readers.target.assign(null); advancedOverride = null; syncArguments(); }
     $("selectedTag").textContent = "No target selected. Tag writes require an explicit target.";
   }
   snapshot = s; source = !!s.connection?.simulate;
+  $("connectionSummary").textContent = connectionSummary(s);
+  if (!s.connected) $("connectionPanel").open = true;
   if (s.connected) {
     $("simulate").checked = source;
+    $("autoPorts").checked = s.connection.detect_ports !== false;
     $("port").value = s.connection.port; $("ports").value = s.connection.ports;
     $("baud").value = s.baud || s.connection.baud; $("address").value = s.address;
+    $("deviceInfo").textContent = `${s.connection.model_code != null ? 'Reader type ' + hex(s.connection.model_code) + ' · firmware ' + s.connection.firmware + '. ' : ''}${s.connection.ports_source === 'manual' ? 'Manual antenna count; not detected from the reader.' : s.connection.ports_source === 'detecting' ? 'Reading device information…' : 'Antenna count from ' + (s.connection.ports_source === 'reader_info' ? 'the vendor reader-type table; power read is unavailable in the current Work Mode.' : s.connection.ports_source === 'power_response' ? 'the per-port power response; model name is unknown.' : 'the reader-type table and matching per-port power response.')}`;
   }
   $("sourceBadge").className = "badge " + (s.connected ? source ? "simulated" : "success" : "neutral");
   $("sourceBadge").textContent = s.connected ? source ? "SIMULATED READER" : "SERIAL · " + s.connection.port : "DISCONNECTED";
@@ -261,7 +306,8 @@ function renderSnapshot(s) {
     $("resultMeta").textContent = s.last_result.operation + " · " +
       (result?.command != null ? "cmd " + hex(result.command) + " · " : "") +
       (result?.status != null ? "status " + hex(result.status) + " · " : "") +
-      (result?.confirmation || result?.termination_reason || "completed");
+      (result?.confirmation || result?.termination_reason || "completed") +
+      (s.last_result.error?.message ? ' · ' + s.last_result.error.message : result?.diagnostics?.length ? ' · ' + result.diagnostics.join('; ') : '');
     $("resultJson").textContent = stringify(s.last_result);
   }
   if (s.tag_overflow) { $("logLoss").textContent = "Host tag capacity reached; " + s.tag_overflow + " new entries not retained. See trace log."; $("logLoss").classList.remove("hidden"); }
@@ -470,9 +516,11 @@ async function boot() {
   $("version").textContent = config.version;
   document.querySelectorAll('[data-icon]').forEach(node => node.prepend(icon(node.dataset.icon)));
   for (const id of ["port", "baud", "ports", "address", "timeout"]) $(id).value = config.defaults[id];
-  for (const name of [...new Set(catalog.map(c => c.group)), "All APIs"]) {
+  guided = new ZKWorkflows.Workspace({element: $("guidedWorkspace"), config, call: completedAction,
+    stop: () => completedAction('stop_inventory'), refresh: updateButtons});
+  for (const name of [...guidedPages, ...new Set(catalog.map(c => c.group).filter(n => !['Inventory', 'RF & antenna'].includes(n))), "All APIs"]) {
     const count = name === "All APIs" ? catalog.length : catalog.filter(c => c.group === name).length;
-    const button = make("button", {class: "nav-button", "data-group": name}, icon(groupIcons[name]), make('span', {class:'nav-label'}, name), make("span", {class:'nav-count'}, count));
+    const button = make("button", {class: "nav-button", "data-group": name}, icon(groupIcons[name]), make('span', {class:'nav-label'}, name), guidedPages.includes(name) ? null : make("span", {class:'nav-count'}, count));
     button.onclick = () => chooseGroup(name); $("nav").append(button);
   }
   $("coverageNav").dataset.group = "Support & evidence";
@@ -480,9 +528,12 @@ async function boot() {
   $("coverageContent").replaceChildren(...config.limitations.map(r =>
     make("div", {class: "coverage-row"}, make("b", {}, r.feature), make("span", {}, make("span", {class: "badge partial"}, r.status)), make("p", {}, r.reason))));
   $("operation").onchange = renderOperation;
+  $("ports").onchange = () => { config.defaults.ports = Number($("ports").value); updateButtons(); };
+  $("autoPorts").onchange = updateButtons; $("simulate").onchange = updateButtons;
   $("connectBtn").onclick = guarded(async () => {
     const args = {port: $("port").value.trim(), baud: Number($("baud").value), ports: Number($("ports").value),
       address: Number($("address").value), timeout: Number($("timeout").value), simulate: $("simulate").checked,
+      detect_ports: $("autoPorts").checked,
       clean_boundary: $("cleanBoundary").checked, model: $("model").value || null, firmware: $("firmware").value || null,
       cfg25_length: $("cfg25").value ? Number($("cfg25").value) : null,
       cfg29_length: $("cfg29").value ? Number($("cfg29").value) : null,
@@ -507,7 +558,10 @@ async function boot() {
     if (!args || typeof args !== "object" || Array.isArray(args)) throw new Error("Arguments must be a JSON object");
     advancedOverride = args; $("commandEffect").textContent = "Using advanced JSON arguments";
   });
-  $("stopBtn").onclick = guarded(() => action("stop_inventory"));
+  $("stopBtn").onclick = guarded(async () => {
+    await completedAction("stop_inventory");
+    guided.message('Reading stopped. Review the final outcome below.', true);
+  });
   $("clearTags").onclick = guarded(() => action("clear_tags"));
   $("exportTags").onclick = guarded(() => download("/api/tags.csv", "zk-tags.csv"));
   $("exportLog").onclick = guarded(() => download("/api/logs", "zk-events.jsonl"));
@@ -515,6 +569,6 @@ async function boot() {
   $("injectBtn").onclick = guarded(() => action("inject", {error: $("faultType").value}));
   $("tagSearch").oninput = renderTags; $("phaseUnit").onchange = renderTags;
   $("logSearch").oninput = renderEvents; $("logFilter").onchange = renderEvents;
-  chooseGroup("Reader"); poll(); pollLogs(); streamLive();
+  chooseGroup("Inventory"); poll(); pollLogs(); streamLive();
 }
 boot().catch(fail);

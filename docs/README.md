@@ -12,6 +12,7 @@ first tags. The Python and browser interfaces use the same protocol implementati
 | [Tag memory](tag_memory.md) | Bank layout, addressing, targeting, and writes |
 | [RSSI and phase](phase_and_live_view.md) | Raw values, units, and measurement limits |
 | [Browser integration](../web/README.md) | JavaScript / TypeScript with Web Serial |
+| [Web controls](web_controls.md) | Reading tasks, antenna/power controls and their API mapping |
 | [Test console](../tests/demo_app/README.md) | Interactive commands and simulated reader |
 | [NATION migration](nation_comparison.md) | Separate adapter, complete API map and RF choices |
 

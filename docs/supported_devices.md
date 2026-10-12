@@ -4,16 +4,19 @@ The SDK targets ZK-7180M and ZK-7182M Ex10 readers using the Gen2/6C host protoc
 described in the UHF RFID Reader Series manual V2.25. Firmware options and tag-chip
 support affect which commands are usable.
 
-Hardware coverage is partial: a one-port Scenario/phase session and three reported
-hardware checks are recorded in [validation](validation.md). The retained session
-summary does not identify an exact model/firmware pair, so it is not a model-wide
-certification.
+Hardware coverage is partial. One-port checks and a four-port session
+(model code `0x75`, vendor table name `UHF7182M`, firmware `02 08`) are recorded
+in [validation](validation.md).
+The four-port session covers EPC, FastID, Scenario/phase, antenna masks and per-port
+power read-back; it is not a model-wide or RF-performance certification.
 
 ## Reader configuration
 
 Set `ReaderCapabilities(antenna_ports=...)` to 1, 4, 8, or 16 for the attached
 module. This selects wire layouts; it does not autodetect the model or validate
 firmware. `ReaderInfo` preserves model code and firmware bytes as returned.
+The [test console](web_controls.md) performs separate read-only discovery on
+Connect and supplies the resolved count to the SDK.
 
 | Feature | Implementation | Conditions |
 |---|---|---|
@@ -21,10 +24,10 @@ firmware. `ReaderInfo` preserves model code and firmware bytes as returned.
 | Reader info, serial, address, baud, interface | Available | Transport must support baud changes; interface change needs power cycle |
 | Read/write power and retries | Available | 0–30 dBm; per-port arrays match the declared count |
 | Antenna selection and check | Set: 1/4/8/16 ports | Full-mask getter is limited to 8 ports |
-| Answer EPC, TID, FastID, phase, statistics | Available; optional ordered antenna rounds | FastID TID requires a compatible tag; multi-port RF validation pending |
+| Answer EPC, TID, FastID, phase, statistics | Available; optional ordered antenna rounds | Four-port EPC/FastID observed; TID remains optional; see validation for coverage |
 | Single, EPC-match, buffered inventory | Available | EPC match: 1–196 bits, offset + length at most 496 |
 | Mix EPC + memory | Available | Up to 31 words; use memory reads for longer ranges |
-| Scenario EPC / TID | Start, stream, stop, restore; single/multiple antenna mask | Automatic antenna restore limited to 1/4/8 ports; multi-port hardware validation pending |
+| Scenario EPC / TID | Start, stream, stop, restore; single/multiple antenna mask | Four-port EPC/phase and restore observed; automatic antenna restore limited to 1/4/8 ports |
 | Scenario selectors and phase | CFG9 encoding available | S-PRO/S-RPT/S-CTP algorithms unresolved; verify deployed firmware |
 | S-CST custom profiles | CFG31 get/set | Ordered slots; no automatic CFG31 restore or verified switching schedule |
 | Real-time, trigger, heartbeat (optional) | Available | Temporary session mode changes; stored `0x75` configuration; only info/mode operations while active |

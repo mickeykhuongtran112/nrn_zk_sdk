@@ -97,8 +97,9 @@ available; a device rejection does not itself fault the serial connection.
 For multiple antennas, Scenario sets native antenna selection (`0x3F`), verifies
 read-back (`0x21`), then sends one Start (`0x50`). The reader controls switching;
 there is no host Start/Stop loop per port. This follows the ZK demo's mask + Start
-path, but exact switching order/dwell and equivalence to NATION need four-port
-hardware validation. No-tag completion is distinct from a transport fault.
+path. Four-port reports and Stop/restore have been [checked on hardware](../../docs/validation.md#four-port-check);
+exact switching order/dwell and RF equivalence to NATION remain unqualified.
+No-tag completion is distinct from a transport fault.
 
 Stop waits for an in-progress Start, including its initial Work Mode check. The
 browser retains the session outcome after automatic cleanup; a later Stop does

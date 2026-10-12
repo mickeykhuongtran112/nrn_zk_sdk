@@ -12,6 +12,7 @@ def response(command, data=b"", status=0, address=0):
 class DemoTransport:
     def __init__(self, ports=1):
         self.ports, self.address, self.baudrate = ports, 0, 115200
+        self.model_code = {1: 0x71, 4: 0x75, 8: 0x76, 16: 0x77}[ports]
         self.rx, self.tx = asyncio.Queue(), bytearray()
         self.opened = False
         self.stream = None
@@ -119,7 +120,20 @@ class DemoTransport:
     async def handle(self, c, d):
         if c == 0x21:
             out = bytes(
-                (2, 1, 0x20, 2, 255, 255, self.powers[0], 10, self.ant & 255, 0, 0, self.ant_check)
+                (
+                    2,
+                    1,
+                    self.model_code,
+                    2,
+                    255,
+                    255,
+                    self.powers[0],
+                    10,
+                    self.ant & 255,
+                    0,
+                    0,
+                    self.ant_check,
+                )
             )
         elif c == 0x4C:
             out = bytes.fromhex("DEADBEEF")
@@ -190,7 +204,9 @@ class DemoTransport:
             self.send(c, bytes((1, 1, len(self.epc))) + self.epc + bytes((85, 3)), 1)
             return
         elif c in (1, 0x0F, 0x1A):
-            tag = self.tag_payload()
+            # SDK Answer rounds carry the selected port in the penultimate byte.
+            antenna = (d[-2] & 15) + 1 if c == 1 and len(d) >= 5 else None
+            tag = self.tag_payload(antenna=antenna)
             self.send(c, tag[:1] + bytes((1,)) + tag[1:], 1)
             if d and d[0] & 128 and c == 1:
                 self.send(c, bytes.fromhex("01001400000001"), 0x26)

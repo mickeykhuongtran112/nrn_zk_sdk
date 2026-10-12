@@ -6,8 +6,8 @@ RF environment.
 
 ## Software checks
 
-The latest full-suite run on 2026-10-12 used CPython 3.14.6 on Windows: **460 passed,
-6 hardware tests deselected**. Node 24.16.0 passed **40 tests** across the console client,
+The latest full-suite run on 2026-10-13 used CPython 3.14.6 on Windows: **491 passed,
+6 hardware tests deselected**. Node 24.16.0 passed **52 tests** across the console client,
 Web Serial bridge and NATION service example. The real Pyodide 314.0.7 runtime (Python 3.14.2) passed the
 shared harness with eight TX vectors, 2,000 fragmented frames, disabled CFG11 and
 Real-time masks, Range Control set/read-back/restore, Work Mode gating, temporary
@@ -27,8 +27,8 @@ These are synthetic protocol tests, not validation on a physical four-port reade
 The mapping checker accounts for 64 public reference callables and 30 command constants;
 it validates approved RF choices without device I/O. Core-only isolated
 imports, wheel/source archive contents, API indexes and local links passed.
-The follow-up below exercised the adapter on one-port hardware; four-port and
-cross-reader RF equivalence remain unverified.
+The follow-ups below exercise the adapter on one- and four-port hardware;
+cross-reader RF equivalence remains unverified.
 
 Approved-policy regressions cover every GReaderTool speed and full region table,
 profile/read-back failures without committing pending run settings, saved antenna
@@ -56,7 +56,7 @@ frames with no CRC errors, discarded bytes or unexpected frames. The only settin
 writes were temporary CFG11 apply/restore; no saved, RF or tag writes were sent.
 The serial port was closed. Fault regressions use synthetic responses; no antenna
 was disconnected and no hardware read-back failure was induced. Raw captures
-remain in ignored local lab files. Four-port RF validation is still pending.
+remain in ignored local lab files. See the subsequent four-port check below.
 
 An initial concurrent run failed the existing continuous post-ACK timing test.
 That test passed in isolation, and the full Python suite passed when run separately
@@ -104,6 +104,65 @@ simulator.
 [CONTRIBUTING.md](../CONTRIBUTING.md) lists reproducible commands. CI is configured
 for Python 3.11/3.14 and Node 22. The local results above do not imply that the
 remote workflow or every supported Python/OS combination has been exercised.
+
+The guided-console update adds task-to-API checks for one/four-port EPC, FastID
+and single scans, custom-region bounds, and acknowledged writes with failed
+read-back. HTTP tests check exact job lookup and session-token enforcement.
+Browser inspection exercised the simulator's four-port FastID reports, Start/Stop,
+single-port selection, antenna/power, custom region, profiles and All APIs.
+These workflow checks used the simulator. The COM17 observations below describe
+the hardware session and subsequent read-only connection check.
+
+Final review also verifies that a native band absent from the guided selector
+cannot become band 0 through an empty value. Pyodide inventory tests wait for
+the required reports with a bounded timeout instead of assuming all antennas
+have completed within a fixed delay.
+
+## Four-port check
+
+On 2026-10-12, a user-identified ZK7180M on COM17/115200 returned model code `0x75`
+and firmware `02 08`. The Ex10 V6.8 `ReaderType.ini` calls this code `UHF7182M`,
+four ports (`0x71` is `UHF7180M`, one port). All four ports had antennas. Tests used the existing region
+and profile, with 27 dBm per port during inventory.
+
+| Check | Observation |
+|---|---|
+| Answer EPC, ANT1–4 separately | Each port returned tags and terminal status `0x01` |
+| Scenario, each port separately | Reports identified only the requested port; Stop restored the original mask |
+| Scenario, ANT1–4 | 820 reports across all four ports in a four-second consumer window |
+| Scenario with phase, ANT2/ANT4 | 725 reports, all with phase, only from the selected ports |
+| FastID, ANT1–4 | 327 reports; 322 included TID; TX order repeated 1, 2, 3, 4 |
+| FastID, ANT4/ANT2 | 188 reports; 180 included TID; TX order repeated 4, 2 |
+| Antenna masks | Volatile Set/Get matched `1`, `2`, `4`, `8`, `5`, `10`, `15` |
+| Per-port power | Volatile Set/Get matched `(26, 25, 24, 23)` dBm, then restored `(27, 27, 27, 27)` |
+
+All stream runs stopped successfully, drained their queues and returned idle,
+with no dropped or quarantined reports. The main capture contains 3,833 RX frames
+with zero CRC errors, discarded bytes, overflows or unexpected frames. Before/after
+snapshots matched for Work Mode, CFG7/8/9/10/11/16/25/29/31, power, antenna mask,
+region and profile. No saved settings, region/profile changes or tag writes were
+sent; the serial port was closed. These short runs establish host-protocol behavior,
+not sustained throughput, RF output accuracy, power-cycle retention or NATION RF equivalence.
+
+The console failure was a form-conversion defect: blank optional `antenna_mask`
+and `antenna_sequence` fields became empty strings and failed SDK validation
+before TX. Typed controls now produce a number / JSON list or `null`; the backend
+also accepts blanks from older forms. The corrected console controller was tested
+on COM17 with the original blank payload, all-port Scenario and all-port FastID.
+Software regressions cover blank/default selection on one/four ports, explicit
+selection, invalid inputs before TX, Stop and restoration. Native SDK runtime and
+approved RF mappings were unchanged. Raw captures remain in ignored local files.
+
+A subsequent read-only connection check started with a one-port declaration on
+COM17. Automatic discovery read `0x21`, `0x77` and `0x94`, resolved four ports, and
+updated SDK capabilities before the UI became ready. A subsequent power Get
+returned `(27, 27, 27, 27)`; the current antenna mask was `5`. No configuration or
+inventory commands were sent, and the port was closed. Regression tests cover
+one/four/eight/sixteen-port layouts, unknown model codes, conflicting or malformed
+power responses, rejected/timeout queries, manual selection and active Work Mode.
+The browser was then connected to COM17 with the same one-port default: both
+guided pages displayed ANT1-4 and all four 27 dBm values were read successfully.
+Only read commands were sent; Disconnect released the port.
 
 ## Hardware coverage
 

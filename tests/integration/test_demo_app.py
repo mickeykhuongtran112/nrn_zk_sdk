@@ -62,6 +62,112 @@ def test_argument_conversion_is_typed_and_rejects_arbitrary_calls():
         convert("inventory_once", {"config": {"bogus": 1}})
 
 
+def test_inventory_optional_antenna_fields_have_typed_controls():
+    operation = next(item for item in catalogue() if item["name"] == "start_inventory")
+    fields = {field["name"]: field for field in operation["fields"]}
+    assert fields["antenna_mask"]["type"] == "number"
+    assert fields["antenna_sequence"]["type"] == "json"
+    for name in ("antenna_mask", "antenna_sequence"):
+        assert fields[name]["default"] is None
+        assert not fields[name]["required"]
+        assert fields[name]["help"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ports,antenna", [(1, 1), (4, 3)])
+@pytest.mark.parametrize("blank", [None, "", "  "])
+async def test_console_blank_antenna_options_start_stop_and_restore(ports, antenna, blank):
+    # Replay the old form payload as well as the corrected form's JSON nulls.
+    c = Controller(EventLog())
+    try:
+        await run(c, "connect", {"simulate": True, "ports": ports})
+        original_cfg, original_ant = dict(c.transport.cfg), c.transport.ant
+        result = await run(
+            c,
+            "start_inventory",
+            {
+                "mode": "scenario",
+                "config": {"antenna": antenna},
+                "antenna_mask": blank,
+                "antenna_sequence": blank,
+            },
+        )
+        assert result["state"] == "success"
+        assert c.transport.ant == 1 << (antenna - 1)
+        await asyncio.sleep(0.02)
+        assert c.received_count > 0
+        assert (await run(c, "stop_inventory"))["result"]["complete"]
+        assert c.transport.ant == original_ant and c.transport.cfg == original_cfg
+        assert c.reader.state.value == "idle"
+    finally:
+        await c.shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mode,options",
+    [
+        ("scenario", {"antenna_mask": 5}),
+        ("answer", {"antenna_sequence": [4, 2]}),
+    ],
+)
+async def test_console_explicit_four_port_inventory_options(mode, options):
+    c = Controller(EventLog())
+    try:
+        await run(c, "connect", {"simulate": True, "ports": 4})
+        result = await run(
+            c,
+            "start_inventory",
+            {
+                "mode": mode,
+                "config": {"scan_time_100ms": 3, "data": "fastid" if mode == "answer" else "epc"},
+                **options,
+            },
+        )
+        assert result["state"] == "success"
+        if mode == "scenario":
+            assert c.transport.ant == 5
+        else:
+            assert c.session.antenna_sequence == (4, 2)
+            await asyncio.sleep(0.02)
+            assert {row["antenna"] for row in c.tags.values()} == {4, 2}
+            assert all(row["tid"] for row in c.tags.values())
+        assert (await run(c, "stop_inventory"))["result"]["complete"]
+        assert c.transport.ant == 1 and c.reader.state.value == "idle"
+    finally:
+        await c.shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mode,options",
+    [
+        ("scenario", {"antenna_mask": 0}),
+        ("scenario", {"antenna_mask": 16}),
+        ("scenario", {"antenna_mask": "15"}),
+        ("scenario", {"antenna_sequence": [1, 2]}),
+        ("answer", {"antenna_sequence": []}),
+        ("answer", {"antenna_sequence": [1, 1]}),
+        ("answer", {"antenna_sequence": [1, 5]}),
+        ("answer", {"antenna_sequence": "[1, 2]"}),
+    ],
+)
+async def test_console_invalid_antenna_options_are_not_coerced(mode, options):
+    c = Controller(EventLog())
+    try:
+        await run(c, "connect", {"simulate": True, "ports": 4})
+        original_cfg = dict(c.transport.cfg)
+        frames_before = sum(e["kind"] == "frame" for e in c.log.events)
+        result = await run(c, "start_inventory", {"mode": mode, **options})
+        assert result["state"] == "failure"
+        assert not c.reader.is_inventory_running
+        assert c.reader.state.value == "idle"
+        assert c.transport.ant == 1 and c.transport.cfg == original_cfg
+        assert sum(e["kind"] == "frame" for e in c.log.events) == frames_before
+    finally:
+        await c.shutdown()
+
+
 @pytest.mark.asyncio
 async def test_simulation_config_and_inventory_use_real_codec_and_trace():
     log = EventLog()
@@ -94,6 +200,22 @@ async def test_simulation_config_and_inventory_use_real_codec_and_trace():
         await run(c, "disconnect")
         await run(c, "connect", {"simulate": True})
         assert not c.tags and c.received_count == 0
+    finally:
+        await c.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_console_custom_region_roundtrip_and_native_restore():
+    c = Controller(EventLog())
+    try:
+        await run(c, "connect", {"simulate": True, "ports": 4})
+        native = (await run(c, "get_region"))["result"]["data"]
+        custom = {"start_frequency_khz": 918000, "channel_count": 8, "spacing_khz": 500}
+        assert (await run(c, "set_custom_region", custom))["state"] == "success"
+        assert (await run(c, "get_region"))["result"]["data"] == custom
+        assert (await run(c, "get_custom_region"))["result"]["data"] == custom
+        assert (await run(c, "set_region", {"region": native}))["state"] == "success"
+        assert (await run(c, "get_region"))["result"]["data"] == native
     finally:
         await c.shutdown()
 
@@ -239,6 +361,8 @@ def test_http_static_api_origin_and_token_without_hardware(tmp_path):
         assert len(bootstrap["catalogue"]) == len(OP_GROUP)
         assert bootstrap["api_revision"] == 2
         assert bootstrap["features"]["live_tags"] is True
+        assert next(r for r in bootstrap["regions"] if r["band"] == 2)["spacing_khz"] == 500
+        assert b"inventoryRequest" in urllib.request.urlopen(base + "/workflows.js").read()
         body = json.dumps({"operation": "connect", "arguments": {"simulate": True}}).encode()
         request = urllib.request.Request(
             base + "/api/operation", body, headers={"Content-Type": "application/json"}
@@ -254,9 +378,24 @@ def test_http_static_api_origin_and_token_without_hardware(tmp_path):
         request.remove_header("Origin")
         with urllib.request.urlopen(request) as r:
             assert r.status == 202
+            accepted = json.load(r)
+        job_url = base + "/api/job?id=" + accepted["job_id"]
+        with pytest.raises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(job_url)
+        assert error.value.code == 403
+        job = json.load(
+            urllib.request.urlopen(
+                urllib.request.Request(job_url, headers={"X-Demo-Token": bootstrap["token"]})
+            )
+        )
+        assert job["id"] == accepted["job_id"] and job["operation"] == "connect"
+        assert job["state"] == "success" and job["result"]["connected"] is True
         snapshot = runtime.snapshot()
         assert snapshot["connection"]["simulate"]
-        assert not any(e["kind"] == "tx" for e in runtime.controller.log.events)
+        assert [
+            e["trace"]["command"] for e in runtime.controller.log.events if e["kind"] == "tx"
+        ] == [0x21, 0x77, 0x94]
+        assert snapshot["connection"]["ports_source"] == "reader_info_and_power"
     finally:
         server.shutdown()
         server.server_close()

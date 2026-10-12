@@ -17,23 +17,63 @@ Open [the console](http://127.0.0.1:8765). Use `--http-port 8766` if the HTTP po
 is busy, or `--no-browser` to prevent automatic browser launch.
 
 1. Select **Simulated reader** for a first software-only run, or choose the actual
-   port, baud rate, address, and antenna count for hardware.
-2. Click **Connect**, then run `get_reader_info` and `get_power`.
-3. Run `inventory_once` for a bounded scan. For continuous reading, choose
-   `start_inventory` and Scenario mode.
-4. Use **Stop inventory**, then **Disconnect** when finished. Press Ctrl+C in the
-   terminal to stop the server.
+   serial port, baud rate and address. **Detect antenna ports automatically** is
+   on by default; **Manual / simulator ports** selects a simulated layout or a
+   verified manual count when automatic detection is disabled.
+2. Click **Connect**. Reader type and per-port power determine the antenna count.
+   Connection details collapse; the summary shows detected/manual count and model.
+   Expand it to Disconnect.
+3. In **Inventory**, choose Continuous EPC, EPC + TID / FastID, or Single scan.
+   Select attached antennas, then press **Start reading** / **Run single scan**.
+4. Use **Stop reading** before changing configuration. **Antenna & power** has
+   reader selection and per-port power; **RF settings** has region and profile.
+5. Use **All APIs** for individual native commands and advanced JSON. Disconnect
+   when finished; Ctrl+C stops the server.
 
-Connect opens the transport without setting RF power or region. A saved working
+Connect performs read-only discovery (`0x21`, `0x77`, and `0x94` in Answer mode),
+without setting RF power, antenna selection, Work Mode or region. Failed or
+conflicting detection closes the connection with an error; it never falls back
+silently to one port. Manual detection-off Connect sends no queries. A saved working
 mode can already be active on the reader; host lifecycle “idle” does not prove RF
 is off. Other serial applications must release the port first.
 
-## Commands
+## Workflows
 
-The console exposes 74 operations plus connection open/close. Forms convert values
+Inventory controls choose the correct mode and port arguments for the task.
+FastID uses repeating Answer rounds; EPC uses Scenario. Single scan permits one
+port. Query settings, SDK request preview and the transaction log expand on demand.
+The UI locks configuration while reading; Stop remains available.
+
+Read antenna/power values before editing. **Save antenna selection** always saves
+and verifies the mask, then updates the run selection. Power, region and profile
+are temporary unless their Save checkbox is checked. Each Apply performs a Get
+and compares the result; an acknowledged write with failed verification is shown
+explicitly and is not retried. See [Web controls](../../docs/web_controls.md) for
+the API mapping and a four-port FastID example.
+
+## All APIs
+
+The console exposes public reader operations plus connection open/close. Forms convert values
 to SDK types; **Advanced JSON arguments** supports nested inputs. Click
 **Use this JSON** to apply them. Byte strings are hexadecimal; memory addresses use
 16-bit words, while mask addresses use bits.
+
+For a four-port reader, leave automatic detection enabled. A manual connection
+requires **Manual / simulator ports = 4** (`--ports 4` sets that field's default).
+Neither option selects all antennas for inventory.
+
+| Start option | Scenario EPC | Answer / FastID |
+|---|---|---|
+| Mode | `scenario` | `answer` |
+| Inventory Data | `epc` | `epc` or `fastid` |
+| Antenna mask | `15` or `0x0F` for ANT1–4 | Leave blank |
+| Antenna sequence | Leave blank / `null` | `[1, 2, 3, 4]` |
+| Scan · 100 ms | Does not limit Scenario duration | Nonzero, e.g. `3`, bounds each round |
+
+Leave both optional antenna fields blank to use **Inventory Antenna** alone.
+Scenario mask bits select ports (e.g. `5` selects ANT1/ANT3); Answer uses the list
+order. Stop restores Scenario's temporary antenna selection. FastID can return
+EPC-only reports, so TID remains optional.
 
 Select a tag row to fill its EPC/TID target. Tag writes require **Enable this tag
 write**. Lock, Kill, and Erase require their action word; single-tag EPC writes
@@ -95,8 +135,8 @@ timing is not an RF benchmark.
 Run its checks with:
 
 ```sh
-python -m pytest tests/integration/test_demo_app.py tests/integration/test_demo_live.py
-node --test tests/browser/demo_client.test.cjs
+python -m pytest tests/integration/test_demo_app.py tests/integration/test_demo_live.py tests/integration/test_demo_discovery.py
+node --test tests/browser/demo_client.test.cjs tests/browser/workflows.test.cjs
 ```
 
 The console is included in the source archive, not the SDK wheel.

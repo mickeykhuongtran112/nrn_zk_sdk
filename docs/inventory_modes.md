@@ -88,7 +88,8 @@ For a four-port reader, declare `ReaderCapabilities(antenna_ports=4)`. Use
 The mask overrides `config.antenna`; bit 0 selects ANT1. It must be nonzero and
 within the declared port count. Answer remains one antenna per round and rejects
 this keyword. Scenario sends one Start; the reader controls antenna switching,
-whose order and timing are not yet verified on four-port hardware.
+whose exact switching schedule is not specified. Four-port tag reports and mask
+restoration have been [observed on hardware](validation.md#four-port-check).
 
 Answer sessions can instead pass `antenna_sequence=(1, 3, 4)`. The host sends a
 round for each port in that order and repeats until Stop. This supports FastID

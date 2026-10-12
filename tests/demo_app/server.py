@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from zk_rfid import PROFILES, SDK_VERSION, StateError, ValidationError
+from zk_rfid import PROFILES, REGIONS, SDK_VERSION, StateError, ValidationError
 
 from .catalog import LIMITATIONS, catalogue, plain
 from .controller import Controller
@@ -20,6 +20,7 @@ STATIC = Path(__file__).parent / "static"
 STATIC_ROUTES = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+    "/workflows.js": ("workflows.js", "text/javascript; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
 }
 API_REVISION = 2
@@ -49,6 +50,12 @@ class Runtime:
 
     async def _tags(self):
         return list(self.controller.tags.values())
+
+    async def job(self, job_id):
+        job = self.controller.jobs.get(job_id)
+        if job is None:
+            raise ValidationError("Job not found or expired; check transaction log")
+        return dict(job)
 
     def call(self, coroutine, timeout=10):
         return asyncio.run_coroutine_threadsafe(coroutine, self.loop).result(timeout)
@@ -166,6 +173,10 @@ class Handler(BaseHTTPRequestHandler):
                     "catalogue": catalogue(),
                     "limitations": LIMITATIONS,
                     "profiles": plain(list(PROFILES.values())),
+                    "regions": [
+                        dict(band=band, base_khz=base, spacing_khz=spacing, max_channel=maximum)
+                        for band, (base, spacing, maximum) in REGIONS.items()
+                    ],
                     "defaults": self.server.runtime.controller.defaults,
                 }
             )
@@ -175,6 +186,9 @@ class Handler(BaseHTTPRequestHandler):
             runtime = self.server.runtime
             if url.path == "/api/live":
                 return self.live_stream()
+            if url.path == "/api/job":
+                job_id = parse_qs(url.query).get("id", [""])[0]
+                return self.json(runtime.call(runtime.job(job_id)))
             if url.path == "/api/snapshot":
                 query = parse_qs(url.query)
                 return self.json(

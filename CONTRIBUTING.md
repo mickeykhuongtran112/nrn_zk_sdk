@@ -27,7 +27,7 @@ Browser checks use Node.js 22 and a separately installed runtime:
 
 ```sh
 npm install --prefix local_data/pyodide pyodide@314.0.7 typescript@5.9.3
-node --test tests/browser/demo_client.test.cjs tests/browser/webserial.test.mjs tests/browser/nation_service.test.mjs
+node --test tests/browser/demo_client.test.cjs tests/browser/workflows.test.cjs tests/browser/webserial.test.mjs tests/browser/nation_service.test.mjs
 node local_data/pyodide/node_modules/typescript/bin/tsc --noEmit --strict --lib es2022,dom web/zk-rfid-webserial.d.ts
 node tests/runtime/run_pyodide.mjs local_data/pyodide/node_modules/pyodide/pyodide.mjs
 ```

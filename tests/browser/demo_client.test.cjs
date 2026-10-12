@@ -12,7 +12,7 @@ function client(fetch) {
   const nodes = new Map(), timers = [];
   const context = vm.createContext({
     fetch, AbortController, AbortSignal, TextDecoder,
-    document: {getElementById(id) {
+    document: {createElement() { return {value: '', setAttribute() {}}; }, getElementById(id) {
       if (!nodes.has(id)) nodes.set(id, {textContent: '', className: '', classList: {add() {}, remove() {}}});
       return nodes.get(id);
     }},
@@ -36,6 +36,57 @@ const live = (count, generation = 1) => ({
   cursor: [generation, count], reset: true,
 });
 const jsonResponse = data => ({ok: true, json: async () => data});
+
+test('optional inventory controls produce null, numeric mask and JSON port list', () => {
+  const c = client(() => {});
+  c.run("const mask = control('number', null, null, 'antenna_mask'); const sequence = control('json', null, null, 'antenna_sequence');");
+  assert.equal(c.run('mask.read()'), null);
+  assert.equal(c.run('sequence.read()'), null);
+  assert.equal(c.run("sequence.node.value = '  '; sequence.read()"), null);
+  assert.equal(c.run("mask.node.value = '0x0F'; mask.read()"), 15);
+  assert.equal(c.run("sequence.node.value = '[4, 2, 1, 3]'; JSON.stringify(sequence.read())"), '[4,2,1,3]');
+  assert.throws(() => c.run("sequence.node.value = '1,2'; sequence.read()"));
+});
+
+test('guided operation waits for its exact job instead of the shared last result', async () => {
+  const paths=[];
+  const c=client(async url=>{
+    paths.push(url);
+    if (url==='/api/operation') return jsonResponse({job_id:'42'});
+    if (url==='/api/job?id=42') return jsonResponse({id:'42',state:'success',result:{data:15,status:0}});
+    return jsonResponse({last_result:{job_id:'41',result:{data:1}}});
+  });
+  const result=await c.run("completedAction('get_antennas')");
+  assert.equal(result.data,15);
+  assert.deepEqual(paths,['/api/operation','/api/job?id=42','/api/snapshot?tags=0']);
+});
+
+test('guided operation rejects partial and uncertain results before verification can proceed', async () => {
+  for (const state of ['partial','unknown','failure']) {
+    const c=client(async url=>url==='/api/operation'
+      ? jsonResponse({job_id:'7'}) : jsonResponse({id:'7',state,result:{status:19,outcome:state}}));
+    await assert.rejects(c.run("completedAction('set_power',{power_dbm:[20,20,20,20]})"), error=>{
+      assert.equal(error.job.state,state);assert.match(error.message,new RegExp(state));return true;
+    });
+  }
+});
+
+test('a successful wire status with decode failure shows the actual diagnostic', async () => {
+  const c=client(async url=>url==='/api/operation'
+    ? jsonResponse({job_id:'8'}) : jsonResponse({id:'8',state:'failure',result:{status:0,
+      diagnostics:['Expected 1 response bytes, received 4']}}));
+  await assert.rejects(c.run("completedAction('get_power')"), /Expected 1 response bytes, received 4/);
+});
+
+test('connection summary distinguishes detection, actual ports and manual declarations', () => {
+  const c=client();
+  c.run("var s = {connected:true, connection:{port:'COM17', ports:1, baud:115200, ports_source:'detecting'}};");
+  assert.match(c.run('connectionSummary(s)'),/detecting antenna ports/);
+  c.run("s.connection = {...s.connection, ports:4, reported_model:'UHF7182M', ports_source:'reader_info_and_power'};");
+  assert.match(c.run('connectionSummary(s)'),/UHF7182M · 4 ports \(detected\)/);
+  c.run("s.connection = {...s.connection, ports:1, reported_model:null, ports_source:'manual'};");
+  assert.match(c.run('connectionSummary(s)'),/1 port \(manual\)/);
+});
 
 test('old API: missing live endpoint falls back to snapshot, no endless 404 retries', async () => {
   const paths = [];

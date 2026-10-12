@@ -5,6 +5,9 @@ reader service and use the [native browser bridge](../../web/README.md) undernea
 Keep the NATION backend and configure its antenna Set command to SAVE as well.
 Its pinned `save_antenna_mask()` only caches a value; it is not a hardware Set.
 
+See [Web controls](../../docs/web_controls.md) for the console's task selector,
+antenna checkboxes, power fields and the corresponding native API arguments.
+
 ```text
 Existing UI -> Reader service -> NATION SDK -> N701
                              -> ZK bridge  -> ZKReader -> ZK7182
@@ -106,7 +109,8 @@ On reconnect, populate checkboxes from `getAntennas()`. Native callers can pass
 `startInventory({mode: "scenario", antenna_mask: 0b1101, config})`; the mask
 overrides `config.antenna`. Stop restores the pre-run selection. Changes to power
 or masks require stopping first. The reader controls switching after one Start;
-switching order/dwell and RF behavior still need four-port hardware validation.
+exact switching order/dwell remains firmware-controlled. Four-port EPC/FastID,
+selected masks and Stop/restore have been [checked on hardware](../../docs/validation.md#four-port-check).
 
 ## Settings
 

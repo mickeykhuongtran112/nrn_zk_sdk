@@ -29,7 +29,7 @@ Gen2 reader workflows; it does not implement every vendor-demo control.
 | NXP Privacy/EAS, Monza QT, EM4325 | No supported tag-specific contract |
 | Network module configuration, ISO 18000-6B | Outside scope |
 
-The [test console](../tests/demo_app/README.md) exposes 74 operations plus connection
+The [test console](../tests/demo_app/README.md) exposes public reader operations plus connection
 open/close. That coverage is checked against public `ZKReader` methods; it is not
 a claim that every vendor control or firmware feature is supported.
 

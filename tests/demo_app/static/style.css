@@ -273,6 +273,77 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
 #coveragePanel > p { max-width: 90ch; color: var(--text-secondary); font-size: 14px; }
 #pollStatus.offline { color: var(--negative); }
 
+/* Guided workspace: reading tasks first, protocol details on demand. */
+.workflow-status { border-left: 3px solid var(--line); padding: 8px 14px; margin: 0 0 16px; color: var(--text-secondary); font-size: 13px; }
+.connection-shell { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 20px; }
+.connection-shell > summary { padding: 14px 20px; font-size: 14px; font-weight: 600; }
+.connection-shell > summary span { margin-left: 16px; color: var(--text-secondary); font-size: 12px; font-weight: 400; }
+.connection-shell .connection { border: 0; margin-bottom: 0; padding-top: 4px; }
+.connection-shell .connection-title { display: none; }
+.workflow-status.success { border-color: var(--positive); background: var(--positive-bg); color: var(--positive); }
+.workflow-status.failure { border-color: var(--negative); background: var(--negative-bg); color: var(--negative); }
+.plain-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.plain-fieldset:disabled { opacity: .6; }
+.workflow-card { padding: 24px; }
+.workflow-card h2 { font-size: 20px; }
+.workflow-card h3 { margin: 0; font-size: 14px; }
+.workflow-card label { display: grid; gap: 7px; font-size: 13px; }
+.workflow-card label.check { display: flex; align-items: center; }
+.task-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px 0 24px; }
+.workflow-card .task-option { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 16px; cursor: pointer; }
+.task-option input { width: 16px; height: 16px; min-height: 16px; margin: 3px 0 0; padding: 0; flex: 0 0 auto; }
+.task-option > span { min-width: 0; }
+.task-option:has(input:checked) { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); background: var(--surface-subtle); }
+.task-option b { display: block; font-size: 14px; color: var(--text); }
+.task-option small { display: block; margin-top: 5px; font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
+.run-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, .7fr); gap: 28px; }
+.block-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.block-heading button { margin-left: auto; font-size: 12px; min-height: 32px; }
+.antenna-picks { display: flex; gap: 8px; flex-wrap: wrap; }
+.workflow-card .antenna-pick { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.antenna-pick:has(input:checked) { border-color: var(--primary); background: var(--surface-selected); }
+.run-options { display: grid; gap: 14px; }
+.phase-option { margin-top: 8px; }
+.query-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.query-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.workflow-details { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.workflow-details summary { font-size: 13px; }
+.workflow-details pre { max-height: 240px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+.run-footer { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.run-footer b { font-size: 15px; }
+.run-footer .hint { margin: 5px 0; max-width: 76ch; }
+#g-gate { color: var(--warning); }
+.run-footer .tools { flex-wrap: nowrap; flex-shrink: 0; }
+.port-rows { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.port-row { border: 1px solid var(--line); padding: 16px; border-radius: 8px; display: grid; gap: 14px; }
+.settings-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.settings-actions button { margin-top: 12px; }
+.setting-note { border-radius: 6px; background: var(--surface-subtle); padding: 12px; font-size: 13px; }
+.settings-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.settings-grid fieldset > label { margin: 16px 0; }
+.settings-grid fieldset > button { margin-top: 16px; }
+.settings-tip { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-secondary); }
+.workspace-grid.workspace-guided { grid-template-columns: minmax(0, 1fr); }
+.workspace-guided .result-card { min-height: 0; padding: 14px 20px; }
+.workspace-guided .card-header { margin-bottom: 6px; }
+.workspace-guided h2 { font-size: 14px; }
+.workspace-guided .result-meta { margin: 4px 0 8px; }
+#nativeResultDetails summary { font-size: 12px; color: var(--text-secondary); }
+.log-toggle { margin: 0 22px 16px; font-size: 13px; font-weight: 600; }
+@media (max-width: 1100px) {
+  .settings-grid, .run-layout { grid-template-columns: minmax(0, 1fr); }
+  .task-options { gap: 8px; }
+  .workflow-card .task-option { padding: 12px; }
+  .port-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .run-footer { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 600px) {
+  .task-options, .settings-actions { grid-template-columns: minmax(0, 1fr); }
+  .workflow-card { padding: 18px; }
+  .query-grid { gap: 8px; }
+  .port-rows { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (max-width: 1279px) {
   .app-layout { grid-template-columns: 202px minmax(0, 1fr); }
   main { padding: 24px; }
@@ -281,6 +352,11 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12
   .workspace-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .result-json { max-height: 360px; }
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+  .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .metric { padding: 14px 16px; }
+  .metric strong { font-size: 24px; }
 }
 @media (max-width: 767px) {
   .topbar { padding: 16px; flex-wrap: wrap; gap: 12px; }

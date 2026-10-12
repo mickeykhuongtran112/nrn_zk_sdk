@@ -21,6 +21,7 @@ from zk_rfid import (
 )
 
 from .catalog import DESTRUCTIVE, OP_GROUP, TAG_WRITES, convert, plain
+from .device import detect_ports
 from .live import LiveView
 from .simulator import DemoTransport
 
@@ -304,6 +305,7 @@ class Controller:
             "port",
             "baud",
             "ports",
+            "detect_ports",
             "address",
             "timeout",
             "simulate",
@@ -320,6 +322,9 @@ class Controller:
         simulate = args.get("simulate", False)
         if not isinstance(simulate, bool):
             raise ValidationError("simulate must be boolean")
+        automatic = args.get("detect_ports", True)
+        if not isinstance(automatic, bool):
+            raise ValidationError("detect_ports must be boolean")
         if not isinstance(args["port"], str) or not args["port"].strip():
             raise ValidationError("Serial port must be nonempty text")
         port_key = args["port"].strip().upper()
@@ -377,7 +382,19 @@ class Controller:
             "ports": args["ports"],
             "simulate": simulate,
             "source": "synthetic" if simulate else "hardware",
+            "detect_ports": automatic,
+            "ports_source": "detecting" if automatic else "manual",
+            "requested_ports": args["ports"],
         }
+        if automatic:
+            try:
+                self.connection.update(await detect_ports(self.reader))
+            except BaseException:
+                self._remember_fault()
+                # Discovery does not own an inventory session or change Work Mode.
+                # Release the port, retaining any uncertain-exchange recovery guard.
+                await self.reader.close()
+                raise
         self.tags.clear()
         self.received_count, self.tag_overflow = 0, 0
         self.live.reset()
@@ -386,7 +403,9 @@ class Controller:
         return {
             "connected": True,
             **self.connection,
-            "note": "No configuration command sent automatically",
+            "note": "Read-only port discovery; no configuration changed"
+            if automatic
+            else "Manual port layout; no command sent automatically",
         }
 
     async def disconnect(self):
